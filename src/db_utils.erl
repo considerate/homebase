@@ -1,5 +1,5 @@
 -module (db_utils).
--export ([query/1, query/2, query/3, connect_to_db/0,put_to_db/1,run_test_put/0,store_message/4,get_row_value/1,fetch/1]).
+-export ([query/1, query/2, query/3, connect_to_db/0,put_to_db/1,run_test_put/0,add_thread/3,get_row_value/1,fetch/1]).
 -define(BASE_ADDRESS,"http://localhost:5984/baseball").
 
 connect_to_db() ->
@@ -40,13 +40,12 @@ query(Query,StartKey,EndKey) ->
 	End = binary_to_list(jiffy:encode(EndKey)),
 	query(Query, [{"startkey",Start},{"endkey",End}]).
 	
-store_message(Message,Group,Sender,{time,Hour,Minute,Second}) ->
+add_thread(ThreadID,Users,Creator) ->
 	put_to_db({[
-		{<<"type">>, "message"},
-		{<<"body">>,Message},
-		{<<"group">>,Group},
-		{<<"from">>,Sender},
-		{<<"time">>,[Hour,Minute,Second]}
+		{<<"type">>,"thread"},
+		{<<"id">>,ThreadID},
+		{<<"users">>,Users},
+		{<<"creator">>,Creator}
 	]}).
 
 %get_messages(Group,{time,StartHour,StartMinut,StartSecond},{time,EndHour,EndMinut,EndSecond}) ->
