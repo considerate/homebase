@@ -25,31 +25,32 @@ query(Query,{opts,Opts}) ->
 	{_, Rows0} = proplists:lookup(<<"rows">>, Data),
 	Rows = case proplists:get_bool(reverse,Opts) of
 		false -> 
-			Rows1;
+			Rows0;
 		true ->
-			 list:reverse(Rows1)
+			 list:reverse(Rows0)
 	end,
-	{[{<<"rows">>,lists:map(fun get_row_value/1, Rows)}]}.	
+	{[{<<"rows">>,lists:map(fun get_row_value/1, Rows)}]};
 	
 	
 
 %queies cdb with a base quary and a list of supplied query parameters.
 %Key must be a string
 %Param must be parsable by jiffy
+
 query(QueryBase,[{Key0,Param0}|T]) ->
-	query(QueryBase,[{Key0,Param0}|T],{opts,[]});
-	
-query(QueryBase,[{Key0,Param0}|T],{opts,Opts}) ->	
+	query(QueryBase,[{Key0,Param0}|T], {opts,[]})
+	;
+query(Query,Key) ->
+	query(Query,[{"key",Key}]).
+
+query(QueryBase, [{Key0,Param0}|T], {opts,Opts}) ->	
 	Query0 = "?" ++ Key0 ++ "=" ++ binary_to_list(jiffy:encode(Param0)),
 	QueryN = lists:foldl(
 	fun({KeyK,ParamK},QueryK) ->
 		QueryK ++ "&" ++ KeyK ++ "=" ++ binary_to_list(jiffy:encode(ParamK))
 	end,Query0,T),
-	query(QueryBase ++ QueryN,{opts,Opts});	
-	
-query(Query,Key) ->
-	query(Query,[{"key",Key}]).
-	
+	query(QueryBase ++ QueryN,{opts,Opts})
+	;		
 query(Query,StartKey,EndKey) ->
 	Start = binary_to_list(jiffy:encode(StartKey)),
 	End = binary_to_list(jiffy:encode(EndKey)),
