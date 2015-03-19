@@ -1,5 +1,5 @@
 -module (db_utils).
--export ([query/1, query/2, query/3, connect_to_db/0,put_to_db/1,run_test_put/0,add_thread/3,get_row_value/1,fetch/1]).
+-export ([query/1, query/2, query/3, connect_to_db/0,add_thread/3,get_row_value/1,fetch/1]).
 -define(BASE_ADDRESS,"http://localhost:5984/baseball").
 
 connect_to_db() ->
@@ -41,7 +41,8 @@ query(Query,StartKey,EndKey) ->
 	query(Query, [{"startkey",Start},{"endkey",End}]).
 	
 add_thread(ThreadID,Users,Creator) ->
-	put_to_db({[
+	Id = bin_to_hex(ThreadID),
+	put_to_db(Id,{[
 		{<<"type">>,"thread"},
 		{<<"id">>,ThreadID},
 		{<<"users">>,Users},
@@ -51,10 +52,13 @@ add_thread(ThreadID,Users,Creator) ->
 %get_messages(Group,{time,StartHour,StartMinut,StartSecond},{time,EndHour,EndMinut,EndSecond}) ->
 %	query("/_design/Messages/_view/message_history?startkey =\"">>,jiffy:encode([Group,[StartHour,StartMinut,StartSecond]]) ++ "\"&endkey=\""++ "[" ++ Group ++ ",[" ++ EndHour ++ "," ++ EndMinut ++ "," ++ EndSecond ++ "]" ++ "]" ++ "]" ++ "\"").
 
-put_to_db(StuffsToAdd) -> 
+bin_to_hex(Bin) when is_binary(Bin) ->
+	<< <<Y>> || <<X:4>> <= Bin, Y <- integer_to_list(X,16) >>.
+
+put_to_db(Id,StuffsToAdd) -> 
 	% Specifying options for http request to db
-	Method = post,
-	Url = ?BASE_ADDRESS,	
+	Method = put,
+	Url = ?BASE_ADDRESS ++ "/" ++ binary_to_list(Id),	
 	Headers = [],
 	Content_type = "application/json",
 	Body = jiffy:encode(StuffsToAdd),
@@ -64,14 +68,6 @@ put_to_db(StuffsToAdd) ->
 
 	%Making request to db
 	httpc:request(Method,Request,HTTPOptions,Options).
-
-run_test_put() -> put_to_db({[
-		{<<"Subject">>,<<"I like Plankton">>},
-		{<<"Author">>,<<"Rusty">>},
-		{<<"PostedDate">>,<<"2006-08-15T17:30:12-04:00">>},
-		{<<"Tags">>,[<<"plankton">>,<<"baseball">>,<<"decisions">>]},
-		{<<"Body">>,<<"I decided today that I don't like baseball. I like plankton.">>}
-	]}).
 
 get_row_value({Obj}) -> 
 	Value = proplists:get_value(<<"value">>, Obj), 
