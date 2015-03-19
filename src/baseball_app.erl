@@ -23,7 +23,7 @@ start(_Type, _Args) ->
         	{"/users/me/threads", my_threads_handler,[]},
             {"/threads", post_thread_handler, [{objectid, ObjectId}]},
             {"/threads/:threadid", thread_handler,[]},
-            {"/threads/:threadid/users", add_users_to_thread_handler, []}
+            {"/threads/:threadid/users", add_users_to_thread_handler, []},
             {"/threads", post_thread_handler, [
                 {objectid, ObjectId},
                 {mqtt_client, MQTTClient}
