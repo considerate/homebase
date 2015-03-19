@@ -13,24 +13,39 @@ fetch(Id) when is_list(Id)->
 	io:format("~p", [Id]),
 	{ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} = httpc:request(?BASE_ADDRESS ++ "/" ++ Id),
 	jiffy:decode(Body).
+query(Query)->
+	query(Query,{opts,[]}).
 
-query(Query) ->
+%Opts must be a proptylists
+%Options:
+%	reverse: reverses the order of the recived documents from the database.
+query(Query,{opts,Opts}) ->
 	{ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} = httpc:request(?BASE_ADDRESS ++ Query),
 	{Data} = jiffy:decode(Body),
-	{_, Rows} = proplists:lookup(<<"rows">>, Data),
-	{[{<<"rows">>,lists:map(fun get_row_value/1, Rows)}]}.
+	{_, Rows0} = proplists:lookup(<<"rows">>, Data),
+	Rows = case proplists:get_bool(reverse,Opts) of
+		false -> 
+			Rows1;
+		true ->
+			 list:reverse(Rows1)
+	end,
+	{[{<<"rows">>,lists:map(fun get_row_value/1, Rows)}]}.	
+	
+	
 
 %queies cdb with a base quary and a list of supplied query parameters.
 %Key must be a string
 %Param must be parsable by jiffy
 query(QueryBase,[{Key0,Param0}|T]) ->
+	query(QueryBase,[{Key0,Param0}|T],{opts,[]});
 	
+query(QueryBase,[{Key0,Param0}|T],{opts,Opts}) ->	
 	Query0 = "?" ++ Key0 ++ "=" ++ binary_to_list(jiffy:encode(Param0)),
 	QueryN = lists:foldl(
 	fun({KeyK,ParamK},QueryK) ->
 		QueryK ++ "&" ++ KeyK ++ "=" ++ binary_to_list(jiffy:encode(ParamK))
 	end,Query0,T),
-	query(QueryBase ++ QueryN);
+	query(QueryBase ++ QueryN,{opts,Opts});	
 	
 query(Query,Key) ->
 	query(Query,[{"key",Key}]).
