@@ -57,13 +57,15 @@ query(Query,StartKey,EndKey) ->
 	query(Query, [{"startkey",Start},{"endkey",End}]).
 	
 add_thread(ThreadID,Users,Creator) ->
-	Id = bin_to_hex(ThreadID),
-	put_to_db(Id,{[
-		{<<"type">>,"thread"},
-		{<<"id">>,ThreadID},
+	Id = bin_to_hex(ThreadID), 
+	Output = {[
+		{<<"type">>,<<"thread">>},
+		{<<"_id">>,Id},
 		{<<"users">>,Users},
 		{<<"creator">>,Creator}
-	]}).
+	]},
+	put_to_db(Id,Output),
+	Output.
 
 %get_messages(Group,{time,StartHour,StartMinut,StartSecond},{time,EndHour,EndMinut,EndSecond}) ->
 %	query("/_design/Messages/_view/message_history?startkey =\"">>,jiffy:encode([Group,[StartHour,StartMinut,StartSecond]]) ++ "\"&endkey=\""++ "[" ++ Group ++ ",[" ++ EndHour ++ "," ++ EndMinut ++ "," ++ EndSecond ++ "]" ++ "]" ++ "]" ++ "\"").
