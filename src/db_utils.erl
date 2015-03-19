@@ -1,5 +1,5 @@
 -module (db_utils).
--export ([query/1, query/2, query/3, connect_to_db/0,add_thread/3,get_row_value/1,fetch/1]).
+-export ([query/1, query/2, query/3, connect_to_db/0, add_thread/3, get_row_value/1, fetch/1]).
 -define(BASE_ADDRESS,"http://localhost:5984/baseball").
 
 connect_to_db() ->
@@ -55,7 +55,7 @@ query(Query,StartKey,EndKey) ->
 	Start = binary_to_list(jiffy:encode(StartKey)),
 	End = binary_to_list(jiffy:encode(EndKey)),
 	query(Query, [{"startkey",Start},{"endkey",End}]).
-	
+
 add_thread(ThreadID,Users,Creator) ->
 	Id = bin_to_hex(ThreadID), 
 	Output = {[

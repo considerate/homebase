@@ -12,6 +12,11 @@ init(Req, Opts) ->
 			Users = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
 			AllUsers = sets:add_element(Uid, Users),
 			Output = db_utils:add_thread(Id, sets:to_list(AllUsers), Uid),
+			% sets:map(fun(User) ->
+				
+			% 	end,
+			% 	AllUsers
+			% ),
 			web_utils:respond_created(Req2, Output, NewOpts);
 		Error ->
 			web_utils:respond_forbidden(Req,Error)

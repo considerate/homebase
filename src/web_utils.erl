@@ -1,5 +1,5 @@
 -module(web_utils).
--export([respond_forbidden/2, respond_resource_not_found/1,respond_success/3, respond_created/3]).
+-export([respond_forbidden/2, respond_resource_not_found/1,respond_success/3, respond_created/3, create_query_url/2]).
 
 respond_forbidden(Req,Error) ->
 	io:format("ERROR: ~p", [Error]),
@@ -27,3 +27,16 @@ respond_created(Req,JSONData,Opts) ->
 		Req
 	),
 	{ok, Response, Opts}.
+	
+create_query_url(QueryBase,[{Key0,Param0}|T]) ->
+	Query0 = iolist_to_binary([ 
+		<<"?">>,
+		Key0,
+		<<"=">>, 
+		Param0]),
+	QueryN = lists:foldl(
+	fun({KeyK,ParamK},QueryK) ->
+		iolist_to_binary([QueryK, <<"&">>, KeyK, <<"=">>,  ParamK])
+	end,
+	Query0, T),
+	iolist_to_binary([QueryBase, QueryN]).
