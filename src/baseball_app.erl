@@ -15,7 +15,8 @@ start(_Type, _Args) ->
             {"/threads/:threadid/messages", message_history_handler, []},
         	{"/users/me/threads", my_threads_handler,[]},
             {"/threads", post_thread_handler, [{objectid, ObjectId}]},
-            {"/threads/:threadid", thread_handler,[]}
+            {"/threads/:threadid", thread_handler,[]},
+            {"/threads/:threadid/users", add_users_to_thread_handler, []}
         ]}
     ]),
     {ok, BindAddress} = inet:parse_ipv4_address("0.0.0.0"),
