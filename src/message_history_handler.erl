@@ -28,7 +28,7 @@ init(Req, Opts) ->
 					{[StartKey,EndKey,Limit,Decending],[reverse]}
 			end,
 
-			JSONData = db_utils:query("/_design/Messages/_view/message_history",QueryParams,{opts,QueryOpts}),
+			JSONData = db_utils:query("/_design/messages/_view/message_history",QueryParams,{opts,QueryOpts}),
 			Rows = json_utils:get_field(<<"rows">>,JSONData),
 			
 			[FirstMessage|_] = Rows,
