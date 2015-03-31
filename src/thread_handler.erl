@@ -12,7 +12,9 @@ init(Req,Opts) ->
 			IsInThread = lists:any(fun(X) ->  Uid =:= X end, UsersInThread),
 			case IsInThread of
 				true ->
-					BodyText = jiffy:encode(JSONData),
+					BodyText = jiffy:encode({[
+                        {<<"thread">>,object_utils:thread_data(JSONData)}
+                    ]}),
 					ResponseHeaders = [{<<"Content-Type">>,<<"application/json">>}],
 					Response = cowboy_req:reply(200,
 						ResponseHeaders,

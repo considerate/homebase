@@ -10,7 +10,6 @@ connect_to_db() ->
 fetch(Id) when is_binary(Id) ->
 	fetch(binary_to_list(Id));
 fetch(Id) when is_list(Id)->
-	io:format("~p", [Id]),
 	{ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} = httpc:request(?BASE_ADDRESS ++ "/" ++ Id),
 	jiffy:decode(Body).
 query(Query)->

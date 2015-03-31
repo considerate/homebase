@@ -16,6 +16,7 @@ start(_Type, _Args) ->
     mqtt_client_sup:start_link(),
     MqttParams = [{username, <<"admin">>}, {password, AdminToken}, {client_id, OID}],
     {ok, MQTTClient} = mqtt_client_simple:connect(MqttParams),
+    MqttOptions = [{objectid, ObjectId}, {mqtt_client,MQTTClient}],
     Dispatch = cowboy_router:compile([
         {'_', [
         	{"/", hello_handler, []},
@@ -23,11 +24,9 @@ start(_Type, _Args) ->
         	{"/users/me/threads", my_threads_handler,[]},
             {"/threads", post_thread_handler, [{objectid, ObjectId}]},
             {"/threads/:threadid", thread_handler,[]},
-            {"/threads/:threadid/users", add_users_to_thread_handler, []},
-            {"/threads", post_thread_handler, [
-                {objectid, ObjectId},
-                {mqtt_client, MQTTClient}
-            ]},
+            {"/threads/:threadid/users", add_users_to_thread_handler, MqttOptions},
+            {"/threads/:threadid/users/:userid", leave_thread_handler, MqttOptions},
+            {"/threads", post_thread_handler, MqttOptions},
             {"/threads/:threadid", thread_handler,[]}
         ]}
     ]),

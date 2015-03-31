@@ -2,7 +2,7 @@
 -export([init/2]).
 
 init(Req, Opts) ->
-   case auth_ball:authenticate(Req) of
+    case auth_ball:authenticate(Req) of
 		{ok, Data} -> 
 			{ok, Body, Req2} = cowboy_req:body(Req),
 			{BodyData} = jiffy:decode(Body),
@@ -12,21 +12,18 @@ init(Req, Opts) ->
 			NewOpts = [{objectid, NextId()} | proplists:delete(objectid, Opts)],
 			Users = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
 			AllUsers = sets:to_list(sets:add_element(Uid, Users)),
-			Output = db_utils:add_thread(Id, AllUsers, Uid),
-			JSONOutput = jiffy:encode(Output),
-			Topics = lists:map(fun(User) ->
-					iolist_to_binary([<<"users/">>, User, <<"/newthread">>])
-			 	end,
-			 	AllUsers
-			),
-			lists:map(fun(Topic) ->
-					mqtt_client:send(
-						MqttClient, 
-						mqtt:publish([{payload, JSONOutput}, {topic, Topic}])
-					)
-				end,
-			Topics),
+            {Result} = db_utils:add_thread(Id, AllUsers, Uid),
+            Output = {[
+                {id, proplists:get_value(<<"_id">>,Result)},
+                {users, proplists:get_value(<<"users">>,Result)},
+                {creator, proplists:get_value(<<"creator">>,Result)}
+            ]},
+			JSONOutput = jiffy:encode(object_utils:thread_data(Output)),
+            Send = message_utils:send_message(MqttClient,JSONOutput),
+			lists:map(Send,AllUsers),
 			web_utils:respond_created(Req2, Output, NewOpts);
 		Error ->
 			web_utils:respond_forbidden(Req,Error)
 		end.
+
+
