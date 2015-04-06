@@ -23,8 +23,7 @@ post_json(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     Uid = proplists:get_value(user, Opts),
     MqttClient = proplists:get_value(mqtt_client, Opts),
-    JSONData = db_utils:fetch(Thread),
-    {ThreadData} = JSONData,
+    {ThreadData} = db_utils:fetch(Thread),
     UsersInThread = proplists:get_value(<<"users">>, ThreadData),
     IsInThread = lists:member(Uid, UsersInThread),
     case IsInThread of

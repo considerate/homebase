@@ -17,7 +17,8 @@ authenticate(Req) ->
 rest_auth(Req, State) ->
     case authenticate(Req) of
         {ok, Data} ->
-            {true, Req, [{user,proplists:get_value(<<"id">>,Data)}|State]};
+            Uid = proplists:get_value(<<"id">>,Data),
+            {true, Req, [{user,Uid}|State]};
         _ ->
             {{false, <<"Authorization">>}, Req, State}
     end.

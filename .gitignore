@@ -1,3 +1,5 @@
 rel/baseball
 deps
 ebin
+.DS_Store
+.rebar
