@@ -19,9 +19,9 @@ start(_Type, _Args) ->
     MqttOptions = [{objectid, ObjectId}, {mqtt_client,MQTTClient}],
     Dispatch = cowboy_router:compile([
         {'_', [
-        	{"/", hello_handler, []},
+            {"/", hello_handler, []},
             {"/threads/:threadid/messages", message_history_handler, []},
-        	{"/users/me/threads", my_threads_handler,[]},
+            {"/users/:userid/threads", my_threads_handler,[]},
             {"/threads", post_thread_handler, [{objectid, ObjectId}]},
             {"/threads/:threadid", thread_handler,[]},
             {"/threads/:threadid/users", add_users_to_thread_handler, MqttOptions},
@@ -38,7 +38,6 @@ start(_Type, _Args) ->
         [{env, [{dispatch, Dispatch}]}]
     ),
 	baseball_sup:start_link().
-	
 
 stop(_State) ->
 	ok.

@@ -1,14 +1,30 @@
 -module(my_threads_handler).
--export([init/2]).
+-export([
+    init/2,
+    allowed_methods/2,
+    content_types_provided/2,
+    get_json/2,
+    is_authorized/2
+    ]).
 
+init(Req, Opts) ->
+    {cowboy_rest, Req, Opts}.
 
-init(Req,Opts) ->
-    case auth_ball:authenticate(Req) of
-		{ok, Data} -> 
-			Uid = proplists:get_value(<<"id">>, Data),
-			JSONData = db_utils:query("/_design/users/_view/threads", Uid),
-			web_utils:respond_success(Req, JSONData, Opts);
-		Error ->
-			io:format("ERROR: ~p", [Error]),
-			cowboy_req:reply(401,Req)
-	end.
+allowed_methods(Req, State) ->
+    {[<<"HEAD">>,<<"GET">>,<<"OPTIONS">>], Req, State}.
+
+content_types_provided(Req, State) ->
+    {[{{<<"application">>,<<"json">>,[]}, get_json}], Req, State}.
+
+is_authorized(Req, State) ->
+    Uid = proplists:get_value(user,State),
+    case web_utils:get_user_id(Req,State) of
+        Uid -> auth_ball:rest_auth(Req,State); % Require id to equal current user
+        _ -> {{false, <<":userid">>}, Req,State}
+    end.
+
+get_json(Req,State) ->
+    Uid = proplists:get_value(user,State),
+    JSONData = db_utils:query("/_design/users/_view/threads", Uid),
+    {jiffy:encode(JSONData), Req, State}.
+

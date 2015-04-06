@@ -1,8 +1,6 @@
 -module(message_utils).
 -export([send_message/2]).
 
-
-
 send_message(MqttClient,Payload) ->
     fun(User) ->
             Topic = list_to_binary([<<"users/">>, User, <<"/newthread">>]),
