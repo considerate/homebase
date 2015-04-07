@@ -1,4 +1,4 @@
--module(baseball_app).
+-module(homebase_app).
 -behaviour(application).
 
 -export([start/2]).
@@ -37,7 +37,7 @@ start(_Type, _Args) ->
         [{port, Port},{ip, BindAddress}],
         [{env, [{dispatch, Dispatch}]}]
     ),
-	baseball_sup:start_link().
+	homebase_sup:start_link().
 
 stop(_State) ->
 	ok.
