@@ -13,10 +13,14 @@ allowed_methods(Req, State) ->
     {[<<"HEAD">>,<<"DELETE">>,<<"OPTIONS">>], Req, State}.
 
 is_authorized(Req, State) ->
-    Uid = proplists:get_value(user,State),
-    case web_utils:get_user_id(Req,State) of
-        Uid -> auth_ball:rest_auth(Req,State); % Require id to equal current user
-        _ -> {{false, <<":userid">>}, Req,State}
+    case auth_ball:rest_auth(Req,State) of
+        {true, NewReq, NewState} ->
+            Uid = proplists:get_value(user,NewState),
+            case web_utils:get_user_id(NewReq,NewState) of
+                Uid -> {true, NewReq, NewState};
+                _ -> {{false, <<":userid">>}, Req,State}
+            end;
+        Fail -> Fail
     end.
 
 delete_resource(Req,Opts) ->
