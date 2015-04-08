@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+HOST=127.0.0.1:5984
+DB=baseball
+
+DESIGN=messages
+
+curl -X PUT --data-binary @- http://$HOST/$DB/_design/$DESIGN <<JS
+{
+  "_id": "_design/$DESIGN", 
+  "views": {
+    "message_history": {
+      "map": "function(doc) {\n  if(doc.type === 'message'){\n    emit([doc.thread,doc._id],{body: doc.body, from: doc.from, id: doc._id});\n  }\n}\n"
+    }
+  }
+}
+JS
+
+DESIGN=users
+
+curl -X PUT --data-binary @- http://$HOST/$DB/_design/$DESIGN <<JS
+{
+  "_id": "_design/$DESIGN", 
+  "views": {
+    "threads": {
+      "map": "function(doc) {\n  if(doc.type === 'thread') {\n    doc.users.forEach(function(user) {\n      emit(user, {\n        id: doc._id,\n        users: doc.users,\n        creator: doc.creator\n      });\n    }); \n  }\n}\n"
+    }
+  }
+}
+JS
