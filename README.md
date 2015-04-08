@@ -1,12 +1,22 @@
-# CouchBase
+# Homebase
+
+The HTTP API complement to 3rd Base.
 
 ## Installation
+
 ```bash
 make deps
 make rel
 ```
 
-## Running
+Make sure CouchDB is up and running at the default address, then
+
+```bash
+./make-couchdb-design
 ```
-./rel/couch_base/bin/couch_base start
+
+## Running
+
+```
+./rel/homebase/bin/homebase start
 ```
