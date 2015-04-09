@@ -80,8 +80,7 @@ put_to_db(Id,StuffsToAdd) ->
     httpc:request(Method,Request,HTTPOptions,Options).
 
 get_row_value({Obj}) -> 
-    Value = proplists:get_value(<<"value">>, Obj), 
-    Value.
+    proplists:get_value(<<"value">>, Obj).
 
 %The above erlang datastructure corresponds to the following json
 %"{ 

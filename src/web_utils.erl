@@ -18,8 +18,7 @@ respond_resource_not_found(Req) ->
 get_user_id(Req,Opts) ->
     case cowboy_req:binding(userid, Req) of
         <<"me">> ->
-            Uid = proplists:get_value(user, Opts),
-            Uid;
+            proplists:get_value(user, Opts);
         Id ->
             Id
     end.
