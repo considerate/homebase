@@ -7,11 +7,16 @@ secret() ->
 
 authenticate(Req) ->
     Headers = cowboy_req:headers(Req),
-    {_,Auth}=proplists:lookup(<<"authorization">>,Headers),
-    <<"Bearer ", Token/binary>> = Auth,
-    case ejwt:parse_jwt(Token, ?SECRET) of
-        {Data} -> {ok, Data};
-        Error -> {error, Error}
+    case proplists:lookup(<<"authorization">>,Headers) of
+        {_, <<"Bearer ", Token/binary>>} -> 
+            case ejwt:parse_jwt(Token, ?SECRET) of
+                {Data} -> {ok, Data};
+                Error -> {error, Error}
+            end;
+        {_, _} ->
+            {error, not_bearer_authorization};
+        none ->
+            {error, no_authorization_header}
     end.
 
 rest_auth(Req, State) ->
@@ -19,7 +24,8 @@ rest_auth(Req, State) ->
         {ok, Data} ->
             Uid = proplists:get_value(<<"id">>,Data),
             {true, Req, [{user,Uid}|State]};
-        _ ->
+        {error, Error} ->
+            io:format("authentication failed: ~p~n", [Error]),
             {{false, <<"Authorization">>}, Req, State}
     end.
 

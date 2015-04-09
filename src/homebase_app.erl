@@ -24,12 +24,10 @@ start(_Type, _Args) ->
             {"/", hello_handler, []},
             {"/threads/:threadid/messages", message_history_handler, []},
             {"/users/:userid/threads", my_threads_handler,[]},
-            {"/threads", post_thread_handler, []},
+            {"/threads", post_thread_handler, MqttOptions},
             {"/threads/:threadid", thread_handler,[]},
             {"/threads/:threadid/users", add_users_to_thread_handler, MqttOptions},
-            {"/threads/:threadid/users/:userid", leave_thread_handler, MqttOptions},
-            {"/threads", post_thread_handler, MqttOptions},
-            {"/threads/:threadid", thread_handler,[]}
+            {"/threads/:threadid/users/:userid", leave_thread_handler, MqttOptions}
         ]}
     ]),
     {ok, BindAddress} = inet:parse_ipv4_address("0.0.0.0"),

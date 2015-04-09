@@ -45,21 +45,22 @@ get_json(Req, Opts) ->
     end,
 
     JSONData = db_utils:query("/_design/messages/_view/message_history",QueryParams,{opts,QueryOpts}),
-    Rows = json_utils:get_field(<<"rows">>,JSONData),
+    Messages = json_utils:get_field(<<"rows">>,JSONData),
 
-    [FirstMessage|_] = Rows,
-    LastMessage = lists:last(Rows),
+    [FirstMessage|_] = Messages,
+    LastMessage = lists:last(Messages),
 
     FirstMessageId = json_utils:get_field(<<"_id">>,FirstMessage),
     LastMessageId = json_utils:get_field(<<"_id">>,LastMessage),
 
     BaseLink = iolist_to_binary([<<"/threads/">>, Thread, <<"/messages">>]),
-    GotMaxMessages = length(Rows) == ?MAX_MESSAGES,
+    GotMaxMessages = length(Messages) == ?MAX_MESSAGES,
 
-    Links = if GotMaxMessages ->
+    Links = if
+        GotMaxMessages ->
             case {After,Before} of
                 {undefined,undefined} ->
-                    none;
+                    {[]};
                 {After,undefined} ->
                     BeforeLink = web_utils:create_query_url(BaseLink,[{<<"before">>,FirstMessageId}]),
                     {[{<<"before">>,BeforeLink}]};
@@ -68,19 +69,18 @@ get_json(Req, Opts) ->
                     AfterLink = web_utils:create_query_url(BaseLink,[{<<"after">>,LastMessageId}]),
                     {[{<<"after">>,AfterLink},{<<"before">>,BeforeLink}]}				
             end;
-        true ->
+        FirstMessage andalso LastMessage ->
             BeforeLink = web_utils:create_query_url(BaseLink,[{<<"before">>,FirstMessageId}]),
             AfterLink = web_utils:create_query_url(BaseLink,[{<<"after">>,LastMessageId}]),
-            {[{<<"after">>,AfterLink},{<<"before">>,BeforeLink}]}	
+            {[{<<"after">>,AfterLink},{<<"before">>,BeforeLink}]};
+        true ->
+            {[]}
     end,
 
-    JSON = case Links of
-        none ->
-            JSONData;
-        _ ->
-            json_utils:add_fields([{<<"links">>,Links}],JSONData)
-    end,
-    {jiffy:encode(JSON), Req, Opts}.
+    Response = {[{messages, Messages},
+                 {links, Links}]},
+    {jiffy:encode(Response), Req, Opts}.
+
 % links suppplied in different situations
 % {undefined,undefined} -> na
 % {after,undefined} -> before
