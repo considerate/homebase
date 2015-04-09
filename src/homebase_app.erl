@@ -34,8 +34,12 @@ start(_Type, _Args) ->
     Port = 8088,
     io:format("Address to listen on: ~p:~p", [BindAddress,Port]),
     cowboy:start_http(http, 100,
-        [{port, Port},{ip, BindAddress}],
-        [{env, [{dispatch, Dispatch}]}]
+        [{port, Port},
+         {ip, BindAddress}],
+        [{env, [{dispatch, Dispatch}]},
+         {middlewares, [cowboy_router,
+                        homebase_cors,
+                        cowboy_handler]}]
     ),
     homebase_sup:start_link().
 
