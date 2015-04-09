@@ -17,6 +17,11 @@ Make sure CouchDB is up and running at the default address, then
 
 ## Running
 
+To run in foreground:
+```
+./rel/homebase/bin/homebase console
+```
+To run in background
 ```
 ./rel/homebase/bin/homebase start
 ```
