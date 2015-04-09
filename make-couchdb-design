@@ -5,6 +5,8 @@ set -e
 HOST=${1:-127.0.0.1:5984}
 DB=baseball
 
+curl -X PUT http://$HOST/$DB
+
 DESIGN=messages
 
 curl -X PUT --data-binary @- http://$HOST/$DB/_design/$DESIGN <<JS
