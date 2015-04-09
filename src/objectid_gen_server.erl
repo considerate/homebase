@@ -10,7 +10,7 @@
          handle_call/3,
          terminate/2]).
 
--record(state, {channels, objectid}).
+-record(state, {objectid}).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
