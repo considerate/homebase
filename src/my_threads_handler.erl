@@ -29,6 +29,8 @@ is_authorized(Req, State) ->
 
 get_json(Req,State) ->
     Uid = proplists:get_value(user,State),
-    JSONData = db_utils:query("/_design/users/_view/threads", Uid),
-    {jiffy:encode(JSONData), Req, State}.
+    {Props} = db_utils:query("/_design/users/_view/threads", Uid),
+    Threads = proplists:get_value(<<"rows">>, Props),
+    Response = {[{threads, Threads}]},
+    {jiffy:encode(Response), Req, State}.
 
