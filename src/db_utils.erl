@@ -45,7 +45,7 @@ query(Query,{opts,Opts}) when is_list(Query) ->
         false ->
             Rows;
         true ->
-            list:reverse(Rows)
+            lists:reverse(Rows)
     end,
     {[{<<"rows">>,lists:map(fun get_row_value/1, NewRows)}]};
 query(QueryBase,[{Key,Param}|Rest]) ->

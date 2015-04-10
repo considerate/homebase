@@ -24,9 +24,10 @@ get_query_params(Thread,Before,After) ->
     Limit = {limit,?MAX_MESSAGES},
     case {Before,After} of
         {undefined,undefined} ->
-            StartKey = {startkey,[Thread]},
-            EndKey = {endkey,[Thread,{[]}]},
-            {[Limit,StartKey,EndKey],[]}
+            StartKey = {startkey,[Thread,{[]}]},
+            EndKey = {endkey,[Thread]},
+            Descending = {descending,true},
+            {[Limit,StartKey,EndKey,Descending],[reverse]}
             ;
         {undefined, After} ->
             StartKey = {startkey,[Thread, After]},
@@ -34,8 +35,8 @@ get_query_params(Thread,Before,After) ->
             {[Limit,StartKey,EndKey],[]}
             ;
         {Before, undefined} ->
-            StartKey = {startkey,[Thread]},
-            EndKey = {endkey,[Thread,Before]},
+            StartKey = {startkey,[Thread,Before]},
+            EndKey = {endkey,[Thread]},
             Descending = {descending,true},
             {[Limit,StartKey,EndKey,Descending],[reverse]}
             ;
@@ -57,7 +58,7 @@ get_pagination_links(BaseLink,Rows,Before,After) ->
             FirstId = proplists:get_value(<<"id">>, FirstMessage),
             case {After,Before} of
                 {undefined,undefined} ->
-                    [CreateLink(<<"after">>,LastId)];
+                    [CreateLink(<<"before">>,FirstId)];
                 {After,undefined} ->
                     [CreateLink(<<"after">>,LastId)];
                 {undefined,Before} ->
