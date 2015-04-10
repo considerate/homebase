@@ -1,5 +1,5 @@
 -module (message_history_handler).
--define(MAX_MESSAGES,30).
+-define(MAX_MESSAGES,20).
 -export([
     init/2,
     allowed_methods/2,
@@ -51,7 +51,7 @@ get_pagination_links(BaseLink,Rows,Before,After) ->
     end,
     case length(Rows) of
         ?MAX_MESSAGES ->
-            [FirstMessage,_] = Rows,
+            [{FirstMessage}|_] = Rows,
             {LastMessage} = lists:last(Rows),
             LastId = proplists:get_value(<<"id">>, LastMessage),
             FirstId = proplists:get_value(<<"id">>, FirstMessage),
@@ -80,5 +80,6 @@ get_json(Req, Opts) ->
     Rows = json_utils:get_field(<<"rows">>,JSONData),
     BaseLink = iolist_to_binary([<<"/threads/">>, Thread, <<"/messages">>]),
     Links = get_pagination_links(BaseLink,Rows,Before,After),
-    JSON = json_utils:add_fields([{links,{Links}}],JSONData),
-    {jiffy:encode(JSON), Req, Opts}.
+    JSON = {[{messages, Rows}]},
+    NewJSON = json_utils:add_fields([{links,{Links}}],JSON),
+    {jiffy:encode(NewJSON), Req, Opts}.

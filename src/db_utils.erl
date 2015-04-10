@@ -17,12 +17,14 @@ querystring({Key,Param}) when is_list(Key) ->
     Key2 = erlang:list_to_binary(Key),
     querystring({Key2,Param});
 querystring({Key,Param}) when is_atom(Key) ->
-    Key2 = erlang:atom_to_binary(Key),
+    Key2 = erlang:atom_to_binary(Key,utf8),
     querystring({Key2,Param});
 querystring({Key,Param}) when is_binary(Key) ->
     JSON = jiffy:encode(Param),
     Separator = <<"=">>,
     <<Key/binary, Separator/binary, JSON/binary>>;
+querystring([]) ->
+    <<>>;
 querystring(Params) when is_list(Params) ->
     Binaries = lists:map(fun querystring/1, Params),
     QS = binary_join(Binaries, <<"&">>),
