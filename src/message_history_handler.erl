@@ -20,69 +20,65 @@ content_types_provided(Req, State) ->
 is_authorized(Req, State) ->
     auth_ball:rest_auth(Req,State).
 
+get_query_params(Thread,Before,After) ->
+    Limit = {limit,?MAX_MESSAGES},
+    case {Before,After} of
+        {undefined,undefined} ->
+            StartKey = {startkey,[Thread]},
+            EndKey = {endkey,[Thread,{[]}]},
+            {[Limit,StartKey,EndKey],[]}
+            ;
+        {undefined, After} ->
+            StartKey = {startkey,[Thread, After]},
+            EndKey = {endkey,[Thread,{[]}]},
+            {[Limit,StartKey,EndKey],[]}
+            ;
+        {Before, undefined} ->
+            StartKey = {startkey,[Thread]},
+            EndKey = {endkey,[Thread,Before]},
+            Descending = {descending,true},
+            {[Limit,StartKey,EndKey,Descending],[reverse]}
+            ;
+        {Before, After} ->
+            StartKey = {startkey,[Thread, After]},
+            EndKey = {endkey,[Thread,Before]},
+            {[Limit,StartKey,EndKey],[]}
+    end.
+
+get_pagination_links(BaseLink,Rows,Before,After) ->
+    CreateLink = fun(Key,Id) ->
+            {Key, web_utils:create_query_url(BaseLink,[{Key,Id}])}
+    end,
+    case length(Rows) of
+        ?MAX_MESSAGES ->
+            [FirstMessage,_] = Rows,
+            {LastMessage} = lists:last(Rows),
+            LastId = proplists:get_value(<<"id">>, LastMessage),
+            FirstId = proplists:get_value(<<"id">>, FirstMessage),
+            case {After,Before} of
+                {undefined,undefined} ->
+                    [CreateLink(<<"after">>,LastId)];
+                {After,undefined} ->
+                    [CreateLink(<<"after">>,LastId)];
+                {undefined,Before} ->
+                    [CreateLink(<<"before">>,FirstId)];
+                {After,Before} ->
+                    [CreateLink(<<"before">>,FirstId),CreateLink(<<"after">>,LastId)]
+            end;
+        _NotMaxRows ->
+            []
+    end.
+
+
 get_json(Req, Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     QS = cowboy_req:parse_qs(Req),
     After = proplists:get_value(<<"after">>,QS),
     Before = proplists:get_value(<<"before">>,QS),
-
-    StartKey = case After of
-        undefined ->
-            {"startkey",[Thread]};
-        _After ->
-            {"startkey",[Thread, After]}
-    end,
-
-    {QueryParams,QueryOpts} = case Before of
-        undefined ->
-            EndKey = {"endkey",[Thread,{[]}]},
-            {[EndKey],[]};
-        _Before -> 
-            EndKey = {"endkey",[Thread,Before]},
-            Limit = {"limit",?MAX_MESSAGES},
-            Decending = {"descending",true},
-            {[StartKey,EndKey,Limit,Decending],[reverse]}
-    end,
-
+    {QueryParams,QueryOpts} = get_query_params(Thread,Before,After),
     JSONData = db_utils:query("/_design/messages/_view/message_history",QueryParams,{opts,QueryOpts}),
     Rows = json_utils:get_field(<<"rows">>,JSONData),
-
-    [FirstMessage|_] = Rows,
-    LastMessage = lists:last(Rows),
-
-    FirstMessageId = json_utils:get_field(<<"_id">>,FirstMessage),
-    LastMessageId = json_utils:get_field(<<"_id">>,LastMessage),
-
     BaseLink = iolist_to_binary([<<"/threads/">>, Thread, <<"/messages">>]),
-    GotMaxMessages = length(Rows) == ?MAX_MESSAGES,
-
-    Links = if GotMaxMessages ->
-            case {After,Before} of
-                {undefined,undefined} ->
-                    none;
-                {After,undefined} ->
-                    BeforeLink = web_utils:create_query_url(BaseLink,[{<<"before">>,FirstMessageId}]),
-                    {[{<<"before">>,BeforeLink}]};
-                {_,Before} ->
-                    BeforeLink = web_utils:create_query_url(BaseLink,[{<<"before">>,FirstMessageId}]),
-                    AfterLink = web_utils:create_query_url(BaseLink,[{<<"after">>,LastMessageId}]),
-                    {[{<<"after">>,AfterLink},{<<"before">>,BeforeLink}]}				
-            end;
-        true ->
-            BeforeLink = web_utils:create_query_url(BaseLink,[{<<"before">>,FirstMessageId}]),
-            AfterLink = web_utils:create_query_url(BaseLink,[{<<"after">>,LastMessageId}]),
-            {[{<<"after">>,AfterLink},{<<"before">>,BeforeLink}]}	
-    end,
-
-    JSON = case Links of
-        none ->
-            JSONData;
-        _ ->
-            json_utils:add_fields([{<<"links">>,Links}],JSONData)
-    end,
+    Links = get_pagination_links(BaseLink,Rows,Before,After),
+    JSON = json_utils:add_fields([{links,{Links}}],JSONData),
     {jiffy:encode(JSON), Req, Opts}.
-% links suppplied in different situations
-% {undefined,undefined} -> na
-% {after,undefined} -> before
-% {undefined,before} -> before, after
-% {after,before} -> before, after
