@@ -24,20 +24,22 @@ start(_Type, _Args) ->
             {"/", hello_handler, []},
             {"/threads/:threadid/messages", message_history_handler, []},
             {"/users/:userid/threads", my_threads_handler,[]},
-            {"/threads", post_thread_handler, []},
+            {"/threads", post_thread_handler, MqttOptions},
             {"/threads/:threadid", thread_handler,[]},
             {"/threads/:threadid/users", add_users_to_thread_handler, MqttOptions},
-            {"/threads/:threadid/users/:userid", leave_thread_handler, MqttOptions},
-            {"/threads", post_thread_handler, MqttOptions},
-            {"/threads/:threadid", thread_handler,[]}
+            {"/threads/:threadid/users/:userid", leave_thread_handler, MqttOptions}
         ]}
     ]),
     {ok, BindAddress} = inet:parse_ipv4_address("0.0.0.0"),
     Port = 8088,
     io:format("Address to listen on: ~p:~p", [BindAddress,Port]),
     cowboy:start_http(http, 100,
-        [{port, Port},{ip, BindAddress}],
-        [{env, [{dispatch, Dispatch}]}]
+        [{port, Port},
+         {ip, BindAddress}],
+        [{env, [{dispatch, Dispatch}]},
+         {middlewares, [cowboy_router,
+                        homebase_cors,
+                        cowboy_handler]}]
     ),
     homebase_sup:start_link().
 
