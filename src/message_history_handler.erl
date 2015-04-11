@@ -22,6 +22,7 @@ is_authorized(Req, State) ->
 
 get_query_params(Thread,Before,After) ->
     Limit = {limit,?MAX_MESSAGES},
+    Skip = {skip,1}, %Do not include the id in before or after
     case {Before,After} of
         {undefined,undefined} ->
             StartKey = {startkey,[Thread,{[]}]},
@@ -32,18 +33,18 @@ get_query_params(Thread,Before,After) ->
         {undefined, After} ->
             StartKey = {startkey,[Thread, After]},
             EndKey = {endkey,[Thread,{[]}]},
-            {[Limit,StartKey,EndKey],[]}
+            {[Limit,Skip,StartKey,EndKey],[]}
             ;
         {Before, undefined} ->
             StartKey = {startkey,[Thread,Before]},
             EndKey = {endkey,[Thread]},
             Descending = {descending,true},
-            {[Limit,StartKey,EndKey,Descending],[reverse]}
+            {[Limit,Skip,StartKey,EndKey,Descending],[reverse]}
             ;
         {Before, After} ->
             StartKey = {startkey,[Thread, After]},
             EndKey = {endkey,[Thread,Before]},
-            {[Limit,StartKey,EndKey],[]}
+            {[Limit,Skip,StartKey,EndKey],[]}
     end.
 
 get_pagination_links(BaseLink,Rows,Before,After) ->
