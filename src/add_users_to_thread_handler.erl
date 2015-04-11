@@ -26,7 +26,9 @@ post_json(Req,Opts) ->
     {ThreadData} = db_utils:fetch(Thread),
     UsersInThread = proplists:get_value(<<"users">>, ThreadData),
     IsInThread = lists:member(Uid, UsersInThread),
-    case IsInThread of
+
+    IsPrivate = proplists:get_bool(<<"private">>,ThreadData),
+    case IsInThread andalso (not IsPrivate) of
         true ->
             {ok, Body, Req2} = cowboy_req:body(Req),
             {BodyData} = jiffy:decode(Body),
