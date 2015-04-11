@@ -1,5 +1,5 @@
 -module (db_utils).
--export ([query/1, query/2, query/3, put_to_db/2, add_thread/3, get_row_value/1, fetch/1]).
+-export ([query/1, query/2, query/3, put_to_db/2, add_thread/4, get_row_value/1, fetch/1]).
 -define(BASE_ADDRESS,"http://localhost:5984/baseball").
 
 fetch(Id) when is_binary(Id) ->
@@ -62,19 +62,16 @@ query(Query,StartKey,EndKey) ->
     End = binary_to_list(jiffy:encode(EndKey)),
     query(Query, [{"startkey",Start},{"endkey",End}]).
 
-add_thread(ThreadID,Users,Creator) ->
-    Id = bin_to_hex(ThreadID),
+add_thread(Id,Users,Creator,Private) ->
     Output = {[
                 {<<"type">>,<<"thread">>},
                 {<<"_id">>,Id},
                 {<<"users">>,Users},
-                {<<"creator">>,Creator}
+                {<<"creator">>,Creator},
+                {<<"private">>, Private}
                 ]},
-    put_to_db(Id,Output),
-    Output.
+    put_to_db(Id,Output).
 
-bin_to_hex(Bin) when is_binary(Bin) ->
-    << <<Y>> || <<X:4>> <= Bin, Y <- integer_to_list(X,16) >>.
 
 put_to_db(Id,StuffsToAdd) ->
     % Specifying options for http request to db

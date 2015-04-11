@@ -5,7 +5,8 @@
     allowed_methods/2,
     content_types_accepted/2,
     post_json/2,
-    is_authorized/2
+    is_authorized/2,
+    new_resource/2
     ]).
 
 init(Req, Opts) ->
@@ -29,23 +30,61 @@ post_json(Req, State) ->
 
     Uid = proplists:get_value(user, State),
     MqttClient = proplists:get_value(mqtt_client, State),
-
-    Id = objectid_gen_server:objectid(),
     Users = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
     AllUsers = sets:to_list(sets:add_element(Uid, Users)),
-    {Result} = db_utils:add_thread(Id, AllUsers, Uid),
+    case AllUsers of
+        [] -> {false, NewReq,State};
+        [_User1] -> {false, NewReq,State};
+        AllUsers ->
+            {Thread,OutputObj} = case AllUsers of
+                [User1,User2] ->
+                    Prefix = <<"chat">>,
+                    Sep = <<"_">>,
+                    ThreadId = <<Prefix/binary,
+                           Sep/binary,
+                           User1/binary,
+                           Sep/binary,
+                           User2/binary>>,
+                    Private = true,
+                    case db_utils:add_thread(ThreadId,AllUsers,Uid,Private) of
+                        {error, _Error} ->
+                            {ThreadId,other};
+                        {ok, _} ->
+                            Output = {[
+                                        {id, ThreadId},
+                                        {users,AllUsers},
+                                        {creator, Uid},
+                                        {private, Private}
+                                        ]},
+                            {ThreadId,Output}
+                    end;
+                AllUsers ->
+                    ThreadIdOid = objectid_gen_server:objectid(),
+                    ThreadId = objectid:bin_to_hex(ThreadIdOid),
+                    Private = false,
+                    {ok, _} = db_utils:add_thread(ThreadId, AllUsers, Uid, Private),
+                    Output = {[
+                        {id, ThreadId},
+                        {users, AllUsers},
+                        {creator, Uid},
+                        {private, Private}
+                    ]},
+                    {ThreadId, Output}
+            end,
+            ResultURL = <<"/threads/", Thread/binary>>,
+            case OutputObj of
+                other ->
+                    NewState = [{exists,true}|State],
+                    {{true, ResultURL}, NewReq, NewState};
+                OutputObj ->
+                    JSONOutput = jiffy:encode(OutputObj),
+                    Send = message_utils:send_message(MqttClient,JSONOutput),
+                    lists:map(Send,AllUsers),
+                    {{true, ResultURL}, NewReq, State}
+            end
+    end.
 
-    ThreadId = proplists:get_value(<<"_id">>, Result),
-    Output = {[
-                {id, ThreadId},
-                {users, AllUsers},
-                {creator, Uid}
-                ]},
-
-    JSONOutput = jiffy:encode(object_utils:thread_data(Output)),
-    Send = message_utils:send_message(MqttClient,JSONOutput),
-    lists:map(Send,AllUsers),
-
-    ResultURL = <<"/threads/", ThreadId/binary>>,
-    {{true, ResultURL}, NewReq, State}.
+new_resource(Req,State) ->
+    Exists = proplists:get_bool(exists,State),
+    {not Exists, Req, State}.
 

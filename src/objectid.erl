@@ -1,8 +1,10 @@
 -module(objectid).
--export([objectid/2, objectid/1, objectid/0, objectid_time/1]).
+-export([objectid/2, objectid/1, objectid/0, objectid_time/1,bin_to_hex/1]).
 
 -define(MAX_INC, round(math:pow(2,24)-1)).
 
+bin_to_hex(Bin) when is_binary(Bin) ->
+    << <<Y>> || <<X:4>> <= Bin, Y <- integer_to_list(X,16) >>.
 % objectid is 96 bits = 12 Bytes containing: <<time:32, pid/machine:40, inc:24>>
 % Pid in this case is self().
 - type objectid() :: <<_:96>>.

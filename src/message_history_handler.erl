@@ -71,7 +71,6 @@ get_pagination_links(BaseLink,Rows,Before,After) ->
             []
     end.
 
-
 get_json(Req, Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     QS = cowboy_req:parse_qs(Req),
