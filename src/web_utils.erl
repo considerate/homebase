@@ -1,19 +1,9 @@
 -module(web_utils).
 -export([
-    respond_forbidden/2,
-    respond_resource_not_found/1,
-    respond_success/3,
-    respond_created/3,
     create_query_url/2,
-    get_user_id/2
+    get_user_id/2,
+    is_blocked/2
 ]).
-
-respond_forbidden(Req,Error) ->
-    io:format("ERROR: ~p", [Error]),
-    cowboy_req:reply(401,Req).
-
-respond_resource_not_found(Req) ->
-    cowboy_req:reply(404,Req).
 
 get_user_id(Req,Opts) ->
     case cowboy_req:binding(userid, Req) of
@@ -23,25 +13,14 @@ get_user_id(Req,Opts) ->
             Id
     end.
 
-respond_success(Req,JSONData,Opts) ->
-    BodyText = jiffy:encode(JSONData),
-    ResponseHeaders = [{<<"Content-Type">>,<<"application/json">>}],
-    Response = cowboy_req:reply(200,
-                                ResponseHeaders,
-                                BodyText,
-                                Req
-                               ),
-    {ok, Response, Opts}.
-
-respond_created(Req,JSONData,Opts) ->
-    BodyText = jiffy:encode(JSONData),
-    ResponseHeaders = [{<<"Content-Type">>,<<"application/json">>}],
-    Response = cowboy_req:reply(201,
-                                ResponseHeaders,
-                                BodyText,
-                                Req
-                               ),
-    {ok, Response, Opts}.
+is_blocked(Uid,UsersToAdd) ->
+    {ok,Settings} = application:get_env(homebase,user_api),
+    BasePath = proplists:get_value(base_path,Settings),
+    URL = BasePath ++ "/users/" ++ binary_to_list(Uid),
+    {ok,{_,	_,UserBody}} = httpc:request(URL),
+    {UserData} = jiffy:decode(UserBody),
+    Blocking = proplists:get_value(<<"blocking">>,UserData),
+    lists:any(fun(Blocked) -> sets:is_element(Blocked, UsersToAdd) end, Blocking).
 
 create_query_url(QueryBase,[{Key0,Param0}|T]) ->
     Query0 = iolist_to_binary([ 

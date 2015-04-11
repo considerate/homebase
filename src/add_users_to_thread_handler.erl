@@ -18,15 +18,6 @@ content_types_accepted(Req, State) ->
 
 is_authorized(Req, State) ->
     auth_ball:rest_auth(Req,State).
-
-is_blocked(Uid,UsersToAdd) ->
-    {ok,Settings} = application:get_env(homebase,user_api),
-    BasePath = proplists:get_value(base_path,Settings),
-    URL = BasePath ++ "/users/" ++ binary_to_list(Uid),
-    {ok,{_,	_,UserBody}} = httpc:request(URL),
-    {UserData} = jiffy:decode(UserBody),
-    Blocking = proplists:get_value(<<"blocking">>,UserData),
-    lists:any(fun(Blocked) -> sets:is_element(Blocked, UsersToAdd) end, Blocking).
     
 post_json(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
@@ -42,7 +33,7 @@ post_json(Req,Opts) ->
             {BodyData} = jiffy:decode(Body),
             UsersToAdd = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
             UsersInThreadSet = sets:from_list(UsersInThread),
-            case is_blocked(Uid,UsersToAdd) of
+            case web_utils:is_blocked(Uid,UsersToAdd) of
                 false ->  
                     NewUsers = sets:to_list(sets:union(UsersToAdd, UsersInThreadSet)),
                     NewThreadData = [{<<"users">>, NewUsers}| proplists:delete(<<"users">>, ThreadData)],
