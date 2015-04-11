@@ -8,29 +8,6 @@ fetch(Id) when is_list(Id)->
     {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} = httpc:request(?BASE_ADDRESS ++ "/" ++ Id),
     jiffy:decode(Body).
 
-binary_join([First|Binaries], Separator) ->
-    lists:foldl(fun(Before, Current) ->
-        <<Before/binary, Separator/binary ,Current/binary>>
-    end, First, Binaries).
-
-querystring({Key,Param}) when is_list(Key) ->
-    Key2 = erlang:list_to_binary(Key),
-    querystring({Key2,Param});
-querystring({Key,Param}) when is_atom(Key) ->
-    Key2 = erlang:atom_to_binary(Key,utf8),
-    querystring({Key2,Param});
-querystring({Key,Param}) when is_binary(Key) ->
-    JSON = jiffy:encode(Param),
-    Separator = <<"=">>,
-    <<Key/binary, Separator/binary, JSON/binary>>;
-querystring([]) ->
-    <<>>;
-querystring(Params) when is_list(Params) ->
-    Binaries = lists:map(fun querystring/1, Params),
-    QS = binary_join(Binaries, <<"&">>),
-    Question = <<"?">>,
-    <<Question/binary, QS/binary>>.
-
 query(Query)->
     query(Query,{opts,[]}).
 
@@ -55,7 +32,7 @@ query(Query,Key) ->
 
 query(BasePath, [{Key,Param}|Rest], {opts,Opts}) ->
     AllParams = [{Key,Param}|Rest],
-    QS = binary_to_list(querystring(AllParams)),
+    QS = binary_to_list(web_utils:querystring(AllParams)),
     query(BasePath ++ QS, {opts, Opts});
 query(Query,StartKey,EndKey) ->
     Start = binary_to_list(jiffy:encode(StartKey)),
