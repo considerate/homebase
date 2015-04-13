@@ -36,7 +36,7 @@ post_json(Req, State) ->
     	true ->
     	   {false, Req, State};
     	false ->
-	    case AllUsers of
+        case AllUsers of
 		[] -> {false, NewReq,State};
 		[_User1] -> {false, NewReq,State};
 		AllUsers ->
@@ -44,17 +44,18 @@ post_json(Req, State) ->
 		        [User1,User2] ->
 		            Prefix = <<"chat">>,
 		            Sep = <<"_">>,
+		            [FirstUser,SecondUser] = lists:sort([User1,User2]),%Makes sure name doesn't depend of who creates the thread
 		            ThreadId = <<Prefix/binary,
 		                   Sep/binary,
-		                   User1/binary,
+		                   FirstUser/binary,
 		                   Sep/binary,
-		                   User2/binary>>,
+		                   SecondUser/binary>>,
 		            Private = true,
 		            case db_utils:add_thread(ThreadId,AllUsers,Uid,Private) of
 		                {error, _Error} ->
 		                    {ThreadId,other};
 		                {ok, _} ->
-		                    Output = {[
+		                    Output = {  [
 		                                {id, ThreadId},
 		                                {users,AllUsers},
 		                                {creator, Uid},
