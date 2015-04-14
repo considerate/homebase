@@ -45,7 +45,7 @@ post_json(Req, State) ->
 		            Prefix = <<"chat">>,
 		            Sep = <<"_">>,
 		            [FirstUser,SecondUser] = lists:sort([User1,User2]),%Makes sure name doesn't depend of who creates the thread
-		            ThreadId = <<Prefix/binary,
+                        ThreadId = <<Prefix/binary,
 		                   Sep/binary,
 		                   FirstUser/binary,
 		                   Sep/binary,
@@ -93,4 +93,3 @@ post_json(Req, State) ->
 new_resource(Req,State) ->
     Exists = proplists:get_bool(exists,State),
     {not Exists, Req, State}.
-
