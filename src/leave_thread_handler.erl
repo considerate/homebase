@@ -26,7 +26,7 @@ is_authorized(Req, State) ->
 delete_resource(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     Uid = proplists:get_value(user, Opts),
-    MqttClient = proplists:get_value(mqtt_client, Opts),
+    % MqttClient = proplists:get_value(mqtt_client, Opts),
     JSONData = db_utils:fetch(Thread),
     {ThreadData} = object_utils:thread_data(JSONData),
     UsersInThread = proplists:get_value(users, ThreadData),
@@ -41,7 +41,7 @@ delete_resource(Req,Opts) ->
                 ]},
     Payload = jiffy:encode(Output),
     db_utils:put_to_db(Thread, {NewThreadData}),
-    Send = message_utils:send_message(MqttClient,Payload),
-    lists:map(Send, NewUsers),
+    % Send = message_utils:send_message(MqttClient,Payload),
+    % lists:map(Send, NewUsers),
     Req2 = cowboy_req:set_resp_body(Payload,Req),
     {true, Req2, Opts}.

@@ -29,7 +29,7 @@ post_json(Req, State) ->
     {BodyData} = jiffy:decode(Body),
 
     Uid = proplists:get_value(user, State),
-    MqttClient = proplists:get_value(mqtt_client, State),
+    % MqttClient = proplists:get_value(mqtt_client, State),
     Users = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
     AllUsers = sets:to_list(sets:add_element(Uid, Users)),
     case web_utils:is_blocked(Uid,Users) of
@@ -82,8 +82,8 @@ post_json(Req, State) ->
 		            {{true, ResultURL}, NewReq, NewState};
 		        OutputObj ->
 		            JSONOutput = jiffy:encode(OutputObj),
-		            Send = message_utils:send_message(MqttClient,JSONOutput),
-		            lists:map(Send,AllUsers),
+		            % Send = message_utils:send_message(MqttClient,JSONOutput),
+		            % lists:map(Send,AllUsers),
 		            {{true, ResultURL}, NewReq, State}
 		    end
 	    end

@@ -1,8 +1,7 @@
 ## Name of the node
--name couch_base@127.0.0.1
-
+-name homebase@127.0.0.1
 ## Cookie for distributed erlang
--setcookie couch_base
+-setcookie homebase
 
 ## Heartbeat management; auto-restarts VM if it dies or becomes unresponsive
 ## (Disabled by default..use with caution!)
@@ -17,5 +16,4 @@
 
 ## Tweak GC to run more often
 ##-env ERL_FULLSWEEP_AFTER 10
-
--mnesia dir '"priv/data/baseball"'
+-s fubar

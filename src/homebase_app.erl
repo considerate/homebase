@@ -7,18 +7,22 @@
 -define(ONE_WEEK, 604800).
 
 start(_Type, _Args) ->
+    '3rd-base_sup':start_link(),
+    % ThrirdStart = application:ensure_all_started('3rd-base'),
+    % {ok, Started} = application:ensure_all_started(fubar),
+    % io:format("Started ~p~n", [ThrirdStart]),
     % Change the configuration of baseball by changing the tupple bellow
     objectid_gen_server:start_link(),
-    mqtt_client_sup:start_link(),
+    % mqtt_client_sup:start_link(),
 
-    Payload = {[{admin,true}]},
-    AdminToken = ejwt:jwt(<<"HS256">>, Payload, ?ONE_WEEK, auth_ball:secret()),
-    MqttParams = [{username, <<"admin">>},
-                  {password, AdminToken},
-                  {client_id, objectid_gen_server:objectid()}],
-    {ok, MQTTClient} = mqtt_client_simple:connect(MqttParams),
-    MqttOptions = [{objectid, objectid_gen_server:objectid()}, {mqtt_client,MQTTClient}],
-
+    % Payload = {[{admin,true}]},
+    % AdminToken = ejwt:jwt(<<"HS256">>, Payload, ?ONE_WEEK, auth_ball:secret()),
+    % MqttParams = [{username, <<"admin">>},
+    %               {password, AdminToken},
+    %               {client_id, objectid_gen_server:objectid()}],
+    % {ok, MQTTClient} = mqtt_client_simple:connect(MqttParams),
+    % MqttOptions = [{objectid, objectid_gen_server:objectid()}, {mqtt_client,MQTTClient}],
+    MqttOptions = [],
     Dispatch = cowboy_router:compile([
         {'_', [
             {"/", hello_handler, []},
