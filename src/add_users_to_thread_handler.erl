@@ -18,11 +18,10 @@ content_types_accepted(Req, State) ->
 
 is_authorized(Req, State) ->
     auth_ball:rest_auth(Req,State).
-    
+
 post_json(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     Uid = proplists:get_value(user, Opts),
-    MqttClient = proplists:get_value(mqtt_client, Opts),
     {ThreadData} = db_utils:fetch(Thread),
     UsersInThread = proplists:get_value(<<"users">>, ThreadData),
     IsInThread = lists:member(Uid, UsersInThread),
@@ -34,7 +33,7 @@ post_json(Req,Opts) ->
             UsersToAdd = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
             UsersInThreadSet = sets:from_list(UsersInThread),
             case web_utils:is_blocked(Uid,UsersToAdd) of
-                false ->  
+                false ->
                     NewUsers = sets:to_list(sets:union(UsersToAdd, UsersInThreadSet)),
                     NewThreadData = [{<<"users">>, NewUsers}| proplists:delete(<<"users">>, ThreadData)],
                     Output = {[
@@ -44,11 +43,12 @@ post_json(Req,Opts) ->
                                 ]},
                     Payload = jiffy:encode(Output),
                     db_utils:put_to_db(Thread, {NewThreadData}),
-                    Send = message_utils:send_message(MqttClient,Payload),
-                    lists:map(Send, NewUsers),
+                    MqttClient = proplists:get_value(client, Opts),
+                    Topic = << <<"threads/">>/binary, Thread/binary, <<"/members">>/binary >>,
+                    message_utils:send_message(MqttClient,Payload, Topic),
                     ResultURL = <<"/threads/", Thread/binary>>,
                     {{true,ResultURL}, Req2, Opts};
-                true -> 
+                true ->
                      {false,Req,Opts}
             end;
         false ->

@@ -1,13 +1,21 @@
 {application, homebase, [
-	{description, ""},
-	{vsn, "0.1.0"},
-	{id, "git"},
-	{modules, []},
-	{registered, []},
-	{applications, [
-		kernel,
-		stdlib
-	]},
-	{mod, {homebase_app, []}},
-	{env, []}
-]}.
+        {description, ""},
+        {vsn, "0.1.0"},
+        {id, "git"},
+        {modules, []},
+        {registered, []},
+        {applications, [
+                kernel,
+                stdlib,
+                sasl,
+                lager,
+                cpg,
+                ssl,
+                inets,
+                ranch,
+                cowboy,
+                '3rd-base'
+                ]},
+        {mod, {homebase_app, []}},
+        {env, []}
+        ]}.

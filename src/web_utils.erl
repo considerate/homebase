@@ -20,7 +20,7 @@ querystring({Key,Param},JSONEncode) when is_atom(Key) ->
     Key2 = erlang:atom_to_binary(Key,utf8),
     querystring({Key2,Param},JSONEncode);
 querystring({Key,Param},JSONEncode) when is_binary(Key) ->
-    Value = if 
+    Value = if
         JSONEncode ->
             jiffy:encode(Param);
         true ->

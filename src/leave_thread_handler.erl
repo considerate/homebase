@@ -41,7 +41,8 @@ delete_resource(Req,Opts) ->
                 ]},
     Payload = jiffy:encode(Output),
     db_utils:put_to_db(Thread, {NewThreadData}),
-    % Send = message_utils:send_message(MqttClient,Payload),
-    % lists:map(Send, NewUsers),
+    Topic = << <<"threads/">>/binary, Thread/binary, <<"/members">>/binary>>,
+    Client = proplists:get_value(client,Opts),
+    message_utils:send_message(Client,Topic, Payload),
     Req2 = cowboy_req:set_resp_body(Payload,Req),
     {true, Req2, Opts}.
