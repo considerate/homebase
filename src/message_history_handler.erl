@@ -48,8 +48,9 @@ get_query_params(Thread,Before,After) ->
     end.
 
 get_pagination_links(BaseLink,Rows,Before,After) ->
+    JSONEncode = false,
     CreateLink = fun(Key,Id) ->
-            {Key, web_utils:create_query_url(BaseLink,[{Key,Id}])}
+            {Key, web_utils:create_query_url(BaseLink,[{Key,Id}],JSONEncode)}
     end,
     case length(Rows) of
         ?MAX_MESSAGES ->

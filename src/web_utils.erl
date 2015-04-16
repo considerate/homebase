@@ -1,9 +1,11 @@
 -module(web_utils).
 -export([
     create_query_url/2,
+    create_query_url/3,
     get_user_id/2,
     is_blocked/2,
-    querystring/1
+    querystring/1,
+    querystring/2
 ]).
 
 binary_join([First|Binaries], Separator) ->
@@ -11,24 +13,30 @@ binary_join([First|Binaries], Separator) ->
         <<Before/binary, Separator/binary ,Current/binary>>
     end, First, Binaries).
 
-querystring({Key,Param}) when is_list(Key) ->
+querystring({Key,Param},JSONEncode) when is_list(Key) ->
     Key2 = erlang:list_to_binary(Key),
-    querystring({Key2,Param});
-querystring({Key,Param}) when is_atom(Key) ->
+    querystring({Key2,Param},JSONEncode);
+querystring({Key,Param},JSONEncode) when is_atom(Key) ->
     Key2 = erlang:atom_to_binary(Key,utf8),
-    querystring({Key2,Param});
-querystring({Key,Param}) when is_binary(Key) ->
-    JSON = jiffy:encode(Param),
+    querystring({Key2,Param},JSONEncode);
+querystring({Key,Param},JSONEncode) when is_binary(Key) ->
+    Value = if 
+        JSONEncode ->
+            jiffy:encode(Param);
+        true ->
+            Param
+    end,
     Separator = <<"=">>,
-    <<Key/binary, Separator/binary, JSON/binary>>;
-querystring([]) ->
+    <<Key/binary, Separator/binary, Value/binary>>;
+querystring([],_JSONEncode) ->
     <<>>;
-querystring(Params) when is_list(Params) ->
-    Binaries = lists:map(fun querystring/1, Params),
+querystring(Params,JSONEncode) when is_list(Params) ->
+    Binaries = lists:map(fun (P) -> querystring(P,JSONEncode) end, Params),
     QS = binary_join(Binaries, <<"&">>),
     Question = <<"?">>,
     <<Question/binary, QS/binary>>.
-
+querystring(Params) when is_list(Params) ->
+    querystring(Params,true).
 
 get_user_id(Req,Opts) ->
     case cowboy_req:binding(userid, Req) of
@@ -48,5 +56,7 @@ is_blocked(Uid,UsersToAdd) ->
     lists:any(fun(Blocked) -> sets:is_element(Blocked, UsersToAdd) end, Blocking).
 
 create_query_url(QueryBase,Params) ->
-    QueryString = querystring(Params),
+    create_query_url(QueryBase,Params,true).
+create_query_url(QueryBase,Params,JSONEncode) ->
+    QueryString = querystring(Params,JSONEncode),
     <<QueryBase/binary, QueryString/binary>>.
