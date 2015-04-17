@@ -43,6 +43,6 @@ delete_resource(Req,Opts) ->
     db_utils:put_to_db(Thread, {NewThreadData}),
     Topic = << <<"threads/">>/binary, Thread/binary, <<"/members">>/binary>>,
     Client = proplists:get_value(client,Opts),
-    message_utils:send_message(Client,Topic, Payload),
+    message_utils:send_message(Client, Payload,Topic),
     Req2 = cowboy_req:set_resp_body(Payload,Req),
     {true, Req2, Opts}.
