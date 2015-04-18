@@ -31,9 +31,9 @@ post_json(Req,Opts) ->
             {ok, Body, Req2} = cowboy_req:body(Req),
             {BodyData} = jiffy:decode(Body),
             UsersToAdd = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
-            UsersInThreadSet = sets:from_list(UsersInThread),
             case web_utils:is_blocked(Uid,UsersToAdd) of
                 false ->
+                    UsersInThreadSet = sets:from_list(UsersInThread),
                     NewUsers = sets:to_list(sets:union(UsersToAdd, UsersInThreadSet)),
                     NewThreadData = [{<<"users">>, NewUsers}| proplists:delete(<<"users">>, ThreadData)],
                     Output = {[

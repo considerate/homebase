@@ -74,9 +74,9 @@ get_pagination_links(BaseLink,Rows,Before,After) ->
 
 get_json(Req, Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
-    QS = cowboy_req:parse_qs(Req),
-    After = proplists:get_value(<<"after">>,QS),
-    Before = proplists:get_value(<<"before">>,QS),
+    QueryString = cowboy_req:parse_qs(Req),
+    After = proplists:get_value(<<"after">>,QueryString),
+    Before = proplists:get_value(<<"before">>,QueryString),
     {QueryParams,QueryOpts} = get_query_params(Thread,Before,After),
     JSONData = db_utils:query("/_design/messages/_view/message_history",QueryParams,{opts,QueryOpts}),
     Rows = json_utils:get_field(<<"rows">>,JSONData),

@@ -21,14 +21,11 @@ is_authorized(Req, State) ->
 
 get_json(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
-    Uid = proplists:get_value(user, Opts),
     {ok,JSONData} = db_utils:fetch(Thread),
-    {ThreadData} = object_utils:thread_data(JSONData),
-    UsersInThread = proplists:get_value(users, ThreadData),
-    IsInThread = lists:member(Uid, UsersInThread),
-    case IsInThread of
+    ThreadData = object_utils:thread_data(JSONData),
+    case auth_ball:user_in_thread(Opts,JSONData) of
         true ->
-            BodyText = jiffy:encode({[{thread,{ThreadData}}]}),
+            BodyText = jiffy:encode({[{thread,ThreadData}]}),
             {BodyText, Req, Opts};
         false ->
             {false, Req, Opts}

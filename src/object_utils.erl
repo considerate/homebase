@@ -1,5 +1,5 @@
 -module(object_utils).
--export([thread_data/1]).
+-export([thread_data/1,valid_thread_name/1]).
 
 thread_data({ThreadData}) ->
     {[
@@ -8,5 +8,6 @@ thread_data({ThreadData}) ->
         {creator, proplists:get_value(<<"creator">>,ThreadData)}
     ]}.
 
-
+valid_thread_name(Name) ->
+    Name =/= <<"">> andalso is_bitstring(Name).
 

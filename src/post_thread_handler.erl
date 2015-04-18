@@ -32,7 +32,8 @@ post_json(Req, State) ->
     % MqttClient = proplists:get_value(mqtt_client, State),
     Users = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
     AllUsers = sets:to_list(sets:add_element(Uid, Users)),
-    case web_utils:is_blocked(Uid,Users) of
+    ThreadName = proplists:get_value(<<"name">>,BodyData),
+    case web_utils:is_blocked(Uid,Users)of
         true ->
            {false, Req, State};
         false ->
@@ -51,7 +52,7 @@ post_json(Req, State) ->
                            Sep/binary,
                            SecondUser/binary>>,
                     Private = true,
-                    case db_utils:add_thread(ThreadId,AllUsers,Uid,Private) of
+                    case db_utils:add_thread(ThreadId,AllUsers,ThreadName,Uid,Private) of
                         {error, _Error} ->
                             {ThreadId,other};
                         {ok, _} ->
@@ -67,7 +68,7 @@ post_json(Req, State) ->
                     ThreadIdOid = objectid_gen_server:objectid(),
                     ThreadId = objectid:bin_to_hex(ThreadIdOid),
                     Private = false,
-                    {ok, _} = db_utils:add_thread(ThreadId, AllUsers, Uid, Private),
+                    {ok, _} = db_utils:add_thread(ThreadId, AllUsers,ThreadName, Uid, Private),
                     Output = {[
                         {id, ThreadId},
                         {users, AllUsers},

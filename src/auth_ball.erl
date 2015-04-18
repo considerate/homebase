@@ -1,5 +1,5 @@
 -module(auth_ball).
--export([authenticate/1, rest_auth/2, secret/0]).
+-export([authenticate/1, rest_auth/2, secret/0, user_in_thread/2]).
 -define (SECRET, <<"This is a very secret secret, do not tell anyone.">>).
 
 secret() ->
@@ -29,3 +29,11 @@ rest_auth(Req, State) ->
             {{false, <<"Authorization">>}, Req, State}
     end.
 
+user_in_thread(Uid,{Thread}) when is_list(Thread) andalso is_bitstring(Uid)->
+	UsersInThread = proplists:get_value(<<"users">>, Thread),
+	lists:member(Uid, UsersInThread);
+
+%When using this overload, make sure that rest_auth has already been called
+user_in_thread(State,{Thread}) when is_list(Thread) andalso is_list(State) ->
+	Uid = proplists:get_value(user,State),
+	user_in_thread(Uid,{Thread}).

@@ -1,5 +1,5 @@
 -module (db_utils).
--export ([query/1, query/2, query/3, put_to_db/2, add_thread/4, get_row_value/1, fetch/1]).
+-export ([query/1, query/2, query/3, put_to_db/2,put_to_db/1, add_thread/5, get_row_value/1, fetch/1, document_exists/3]).
 -define(BASE_ADDRESS,"http://localhost:5984/baseball").
 
 fetch(Id) when is_binary(Id) ->
@@ -44,24 +44,33 @@ query(Query,StartKey,EndKey) ->
     End = binary_to_list(jiffy:encode(EndKey)),
     query(Query, [{"startkey",Start},{"endkey",End}]).
 
-add_thread(Id,Users,Creator,Private) ->
-    Output = {[
+add_thread(Id,Users,Name,Creator,Private) ->
+    
+    BaseOutput = [
                 {<<"type">>,<<"thread">>},
                 {<<"_id">>,Id},
                 {<<"users">>,Users},
                 {<<"creator">>,Creator},
                 {<<"private">>, Private}
-                ]},
+                ],
+    Output = case object_utils:valid_thread_name(Name) of
+        true ->
+            {[{<<"name">>,Name}|BaseOutput]};
+        false -> 
+            {BaseOutput}
+    end,
     put_to_db(Id,Output).
 
+put_to_db({JSONData}) ->
+    put_to_db(proplists:get_value(<<"_id">>,JSONData),{JSONData}).
 
-put_to_db(Id,StuffsToAdd) ->
+put_to_db(Id,JSONData) ->
     % Specifying options for http request to db
     Method = put,
     Url = ?BASE_ADDRESS ++ "/" ++ binary_to_list(Id),
     Headers = [],
     Content_type = "application/json",
-    Body = jiffy:encode(StuffsToAdd),
+    Body = jiffy:encode(JSONData),
     Request = {Url,Headers,Content_type,Body},
     HTTPOptions = [],
     Options = [],
@@ -72,3 +81,15 @@ put_to_db(Id,StuffsToAdd) ->
 get_row_value({Obj}) ->
     Value = proplists:get_value(<<"value">>, Obj),
     Value.
+    
+%Checks if a document  provided in DocumentType exists in the db.
+%Prepends the Document to state if it exists
+document_exists(DocumentType,Req,State) when is_atom(DocumentType) ->
+    ID = cowboy_req:binding(DocumentType, Req),
+    case fetch(ID) of
+        {ok,JSONData} ->
+            {true,Req,[{document,JSONData}|State]};
+        {error,_Err} ->
+            {false,Req,State}
+    end.
+    
