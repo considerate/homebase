@@ -22,7 +22,7 @@ is_authorized(Req, State) ->
 get_json(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     Uid = proplists:get_value(user, Opts),
-    JSONData = db_utils:fetch(Thread),
+    {ok,JSONData} = db_utils:fetch(Thread),
     {ThreadData} = object_utils:thread_data(JSONData),
     UsersInThread = proplists:get_value(users, ThreadData),
     IsInThread = lists:member(Uid, UsersInThread),
@@ -33,3 +33,10 @@ get_json(Req,Opts) ->
         false ->
             {false, Req, Opts}
     end.
+    
+    
+    
+    
+    
+    
+    

@@ -5,8 +5,13 @@
 fetch(Id) when is_binary(Id) ->
     fetch(binary_to_list(Id));
 fetch(Id) when is_list(Id)->
-    {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} = httpc:request(?BASE_ADDRESS ++ "/" ++ Id),
-    jiffy:decode(Body).
+    {ok, {{_Version, StatusCode, _ReasonPhrase}, _Headers, Body}} = httpc:request(?BASE_ADDRESS ++ "/" ++ Id),
+    case StatusCode of
+    	200 ->
+    		{ok,jiffy:decode(Body)};
+    	Err ->
+    		{error,Err}
+    end.
 
 query(Query)->
     query(Query,{opts,[]}).

@@ -18,7 +18,8 @@ start(_Type, _Args) ->
             {"/threads", post_thread_handler, MqttOptions},
             {"/threads/:threadid", thread_handler,[]},
             {"/threads/:threadid/users", add_users_to_thread_handler, MqttOptions},
-            {"/threads/:threadid/users/:userid", leave_thread_handler, MqttOptions}
+            {"/threads/:threadid/users/:userid", leave_thread_handler, MqttOptions},
+            {"/threads/:threadid/name",group_name_handler,MqttOptions}
         ]}
     ]),
     {ok, BindAddress} = inet:parse_ipv4_address("0.0.0.0"),

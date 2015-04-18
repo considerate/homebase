@@ -22,7 +22,7 @@ is_authorized(Req, State) ->
 post_json(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     Uid = proplists:get_value(user, Opts),
-    {ThreadData} = db_utils:fetch(Thread),
+    {ok,{ThreadData}} = db_utils:fetch(Thread),
     UsersInThread = proplists:get_value(<<"users">>, ThreadData),
     IsInThread = lists:member(Uid, UsersInThread),
     IsPrivate = proplists:get_bool(<<"private">>,ThreadData),
