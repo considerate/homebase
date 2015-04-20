@@ -4,17 +4,19 @@
     allowed_methods/2,
     content_types_provided/2,
     content_types_accepted/2,
+    forbidden/2,
     put_json/2,
     get_json/2,
     is_authorized/2,
-    resource_exists/2
+    resource_exists/2,
+    delete_resource/2
     ]).
    
 init(Req,State) ->
     {cowboy_rest,Req,State}.
     
 allowed_methods(Req,State) ->
-    {[<<"HEAD">>,<<"GET">>,<<"PUT">>,<<"OPTIONS">>], Req, State}.
+    {[<<"HEAD">>,<<"DELETE">>,<<"GET">>,<<"PUT">>,<<"OPTIONS">>], Req, State}.
     
 content_types_provided(Req, State) ->
     {[{{<<"application">>,<<"json">>,[]}, get_json}], Req, State}.
@@ -24,52 +26,49 @@ content_types_accepted(Req,State) ->
     
 is_authorized(Req,State) ->
     auth_ball:rest_auth(Req,State).
-        
+
+forbidden(Req,State) ->
+    auth_ball:user_forbidden_from_thread(Req,State).
+    
 resource_exists(Req,State) ->
-    ID = cowboy_req:binding(threadid, Req),
-    NotExists = {false,Req,State},
-    Exists = fun(NewState) -> {true,Req,NewState} end,
-    case db_utils:fetch(ID) of
-        {ok,{JSONData}} ->
-            case proplists:get_value(<<"name">>,JSONData) of
+    case proplists:get_value(document,State) of
+        {Thread} ->
+            case proplists:get_value(<<"name">>,Thread) of
                 undefined ->
-                    NotExists;
+                    {false,Req,State};
                 _Name ->
-                    Exists([{document,{JSONData}}|State])
+                    {true,Req,State}
             end;
-        {error,_Err} ->
-            NotExists
+        none ->
+            {false,Req,State}
     end.
      
 put_json(Req, State) ->
     {ok, Body, NewReq} = cowboy_req:body(Req),
-    Uid = proplists:get_value(user,State),
-    NewThreadName = jiffy:decode(Body),
+    {[{<<"name">>,NewThreadName}]} = jiffy:decode(Body),
     JSONData = proplists:get_value(document,State),
-    Failure = {false,NewReq,State},
-    Success = {true,NewReq,State},
     case {JSONData,object_utils:valid_thread_name(NewThreadName)} of 
         {{Thread},true} ->
-            case auth_ball:user_in_thread(Uid,JSONData) of
-                true -> 
-                    NewThread = [{<<"name">>,NewThreadName}|proplists:delete(<<"name">>,Thread)],
-                    db_utils:put_to_db({NewThread}),
-                    Success;
-                false ->
-                    Failure
-            end;
+            NewThread = [{<<"name">>,NewThreadName}|proplists:delete(<<"name">>,Thread)],
+            db_utils:put_to_db({NewThread}),
+            ThreadId = cowboy_req:binding(threadid, NewReq),
+            message_utils:send_new_thread_name(State,ThreadId,NewThreadName),
+            {true,NewReq,State};
         _ -> 
-            Failure            
+            {false,NewReq,State}       
     end.
 
 get_json(Req,State) ->
     {Thread} = proplists:get_value(document,State),
-    case auth_ball:user_in_thread(State,{Thread}) of
-        true ->
-            Name = proplists:get_value(<<"name">>,Thread),
-            {jiffy:encode(Name),Req,State};
-        false ->
-            {false,Req,State}
-    end.
-    
+    Name = proplists:lookup(<<"name">>,Thread),
+    {jiffy:encode({[Name]}),Req,State}.
+
+
+delete_resource(Req,State) ->
+    {OLDThread} = proplists:get_value(document,State),
+    NewThread = proplists:delete(name,OLDThread),
+    db_utils:put_to_db({NewThread}),
+    ThreadId = cowboy_req:binding(threadid,Req),
+    message_utils:send_new_thread_name(State,ThreadId,null),
+    {true,Req,State}.
     

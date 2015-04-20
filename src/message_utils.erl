@@ -1,5 +1,5 @@
 -module(message_utils).
--export([send_message/3, send_message/4,send_new_thread/6]).
+-export([send_message/3, send_message/4,send_new_thread/6,send_new_thread_name/3]).
 
 send_message(Client,Payload, TopicFn, Users) when is_function(TopicFn) ->
    lists:map(fun(User) ->
@@ -20,9 +20,9 @@ send_new_thread(State,ThreadId,Users,Name,Creator,Private) ->
                 ],
     OutputObj = case object_utils:valid_thread_name(Name) of
         true ->
-            [{<<"name">>,Name}|OutputObj];
+            [{<<"name">>,Name}|BaseOutputObj];
         false ->
-            OutputObj
+            BaseOutputObj
     end,
     Payload = jiffy:encode({OutputObj}),
     Topic = fun(User) ->
@@ -31,5 +31,10 @@ send_new_thread(State,ThreadId,Users,Name,Creator,Private) ->
     send_message(Client,Payload,Topic,Users).
     
     
+send_new_thread_name(State,ThreadId,Name) ->
+     Client = proplists:get_value(client,State),
+     Payload = jiffy:encode({[{name,Name}]}),
+     Topic = << <<"threads/">>/binary, ThreadId/binary, <<"/name">>/binary >>,
+     send_message(Client,Payload,Topic).
     
         
