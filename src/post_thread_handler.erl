@@ -33,6 +33,15 @@ post_json(Req, State) ->
     Users = sets:from_list(proplists:get_value(<<"users">>, BodyData)),
     AllUsers = sets:to_list(sets:add_element(Uid, Users)),
     ThreadName = proplists:get_value(<<"name">>,BodyData),
+    OutputObjFun = fun(ID,Users,Creator,Private,Name)
+        BaseOutput =    [
+                        {id, ThreadId},
+                        {users,AllUsers},
+                        {creator, Uid},
+                        {private, Private}
+                        ]
+        case 
+    end
     case web_utils:is_blocked(Uid,Users)of
         true ->
            {false, Req, State};
@@ -83,12 +92,8 @@ post_json(Req, State) ->
                     NewState = [{exists,true}|State],
                     {{true, ResultURL}, NewReq, NewState};
                 OutputObj ->
-                    JSONOutput = jiffy:encode(OutputObj),
+                    JSONOutputNewThread = jiffy:encode(OutputObj),
                     MqttClient = proplists:get_value(client,State),
-                    Topic = fun(User) ->
-                        << <<"users/">>/binary, User/binary, <<"/newthreads">>/binary >>
-                    end,
-                    message_utils:send_message(MqttClient,JSONOutput,Topic,AllUsers),
                     {{true, ResultURL}, NewReq, State}
             end
         end
