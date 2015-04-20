@@ -10,9 +10,11 @@ start(_Type, _Args) ->
     objectid_gen_server:start_link(),
     {ok, Client} =  mqtt_client_simple:connect([{client_id,<<"admin">>}]),
     MqttOptions = [{client,Client}],
+    MqttDispatch = proplists:get_value(dispatch, fubar:settings(fubar_app)),
     Dispatch = cowboy_router:compile([
         {'_', [
             {"/", hello_handler, []},
+            {"/mqtt", websocket_protocol, [{dispatch, MqttDispatch}]},
             {"/threads/:threadid/messages", message_history_handler, []},
             {"/users/:userid/threads", my_threads_handler,[]},
             {"/threads", post_thread_handler, MqttOptions},
