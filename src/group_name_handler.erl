@@ -28,7 +28,14 @@ is_authorized(Req,State) ->
     auth_ball:rest_auth(Req,State).
 
 forbidden(Req,State) ->
-    auth_ball:user_forbidden_from_thread(Req,State).
+    case cowboy_req:method(Req) of
+        <<"PUT">> ->
+            auth_ball:forbidden_from_creator(Req,State);
+        <<"DELETE">> ->
+            auth_ball:forbidden_from_creator(Req,State);
+        _ -> 
+            auth_ball:forbidden_from_thread(Req,State)
+    end.
     
 resource_exists(Req,State) ->
     case proplists:get_value(document,State) of

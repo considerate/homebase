@@ -38,10 +38,10 @@ querystring(Params,JSONEncode) when is_list(Params) ->
 querystring(Params) when is_list(Params) ->
     querystring(Params,true).
 
-get_user_id(Req,Opts) ->
+get_user_id(Req,State) ->
     case cowboy_req:binding(userid, Req) of
         <<"me">> ->
-            proplists:get_value(user, Opts);
+            proplists:get_value(user, State);
         Id ->
             Id
     end.

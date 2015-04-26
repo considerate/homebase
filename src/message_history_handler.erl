@@ -19,6 +19,9 @@ content_types_provided(Req, State) ->
 
 is_authorized(Req, State) ->
     auth_ball:rest_auth(Req,State).
+    
+forbidden(Req,State) -> 
+    auth_ball:forbidden_from_thread(Req,State).
 
 get_query_params(Thread,Before,After) ->
     Limit = {limit,?MAX_MESSAGES},
