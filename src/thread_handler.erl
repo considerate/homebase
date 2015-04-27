@@ -22,7 +22,7 @@ is_authorized(Req, State) ->
     auth_ball:rest_auth(Req,State).
     
 forbidden(Req,State) ->
-	auth_ball:user_forbidden_from_thread(Req,State).
+	auth_ball:forbidden_from_thread(Req,State).
 	
 resource_exists(Req, State) ->
     case proplists:get_value(document,State) of

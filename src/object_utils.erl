@@ -17,4 +17,3 @@ thread_data({ThreadData}) ->
 
 valid_thread_name(Name) ->
     Name =/= <<"">> andalso is_bitstring(Name).
-

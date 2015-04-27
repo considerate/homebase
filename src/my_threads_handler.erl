@@ -17,15 +17,10 @@ content_types_provided(Req, State) ->
     {[{{<<"application">>,<<"json">>,[]}, get_json}], Req, State}.
 
 is_authorized(Req, State) ->
-    case auth_ball:rest_auth(Req,State) of
-        {true, NewReq, NewState} ->
-            Uid = proplists:get_value(user,NewState),
-            case web_utils:get_user_id(NewReq,NewState) of
-                Uid -> {true, NewReq, NewState};
-                _ -> {{false, <<":userid">>}, Req,State}
-            end;
-        Fail -> Fail
-    end.
+    auth_ball:rest_auth(Req,State).
+
+forbidden(Req,State) ->
+    auth_ball:forbidden_from_user(Req,State).
 
 get_json(Req,State) ->
     Uid = proplists:get_value(user,State),
