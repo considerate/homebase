@@ -76,4 +76,8 @@ delete-deps:
 	@$(REBAR) delete-deps
 
 rel: compile
-	@$(REBAR) generate
+	make master
+
+master slave:
+	mkdir -p dev
+	(cd rel && rebar generate target_dir=$@ overlay_vars=vars/$@_vars.config)

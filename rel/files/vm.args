@@ -1,5 +1,5 @@
 ## Name of the node
--name homebase@127.0.0.1
+-name {{node}}@considerate-macbook-pro
 ## Cookie for distributed erlang
 -setcookie homebase
 
