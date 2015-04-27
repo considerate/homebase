@@ -3,6 +3,7 @@
     init/2,
     allowed_methods/2,
     is_authorized/2,
+    forbidden/2,
     delete_resource/2
     ]).
 
