@@ -1,5 +1,7 @@
 rel/baseball
 rel/homebase
+rel/master
+rel/slave
 deps
 ebin
 .DS_Store
