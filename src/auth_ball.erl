@@ -21,7 +21,7 @@ authenticate(Req) ->
 
 rest_auth(Req, State) ->
     case {cowboy_req:method(Req), authenticate(Req)} of
-        {options, _} ->
+        {<<"OPTIONS">>, _} ->
             {true, Req, State};
         {_, {ok, Data}} ->
             Uid = proplists:get_value(<<"id">>,Data),
