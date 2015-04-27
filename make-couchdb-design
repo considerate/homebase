@@ -24,11 +24,12 @@ DESIGN=users
 
 curl -X PUT --data-binary @- http://$HOST/$DB/_design/$DESIGN <<JS
 {
-  "_id": "_design/$DESIGN", 
-  "views": {
-    "threads": {
-      "map": "function(doc) {\n  if(doc.type === 'thread') {\n    doc.users.forEach(function(user) {\n      emit(user, {\n        id: doc._id,\n        users: doc.users,\n        creator: doc.creator\n      });\n    }); \n  }\n}\n"
-    }
-  }
+   "_id": "_design/users",
+   "language": "javascript",
+   "views": {
+       "threads": {
+           "map": "function(doc) {\n    if(doc.type === 'thread') {\n        var thread = \n        {\n            id: doc._id,\n            users: doc.users,\n            creator: doc.creator\n        };\n        if(doc.name){\n            thread.name = doc.name;\n        }\n        doc.users.forEach(function(user) {\n                emit(user,thread);\n        });\n        \n    }\n}"
+       }
+   }
 }
 JS
