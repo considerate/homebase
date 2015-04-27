@@ -36,9 +36,11 @@ forbidden(Req,State) ->
         _ -> 
             auth_ball:forbidden_from_thread(Req,State)
     end.
-    
+
 resource_exists(Req,State) ->
-    case proplists:get_value(document,State) of
+    Var = proplists:get_value(document,State),
+    io:format("~n~n~p~n~n",[Var]),
+    case Var of
         {Thread} ->
             case proplists:get_value(<<"name">>,Thread) of
                 undefined ->
