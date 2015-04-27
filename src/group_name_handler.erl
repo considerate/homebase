@@ -75,7 +75,7 @@ get_json(Req,State) ->
 
 delete_resource(Req,State) ->
     {OLDThread} = proplists:get_value(document,State),
-    NewThread = proplists:delete(name,OLDThread),
+    NewThread = proplists:delete(<<"name">>,OLDThread),
     db_utils:put_to_db({NewThread}),
     ThreadId = cowboy_req:binding(threadid,Req),
     message_utils:send_new_thread_name(State,ThreadId,null),
