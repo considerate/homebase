@@ -21,12 +21,14 @@ authenticate(Req) ->
     end.
 
 rest_auth(Req, State) ->
-    case authenticate(Req) of
-        {ok, Data} ->
+    case {cowboy_req:method(Req), authenticate(Req)} of
+        {options, _} ->
+            {true, Req, State};
+        {_, {ok, Data}} ->
             Uid = proplists:get_value(<<"id">>,Data),
             {true, Req, [{user,Uid}|State]};
-        {error, Error} ->
-            io:format("authentication failed: ~p~n", [Error]),
+        {_, {error, Error}} ->
+            lager:debug("authentication failed: ~p", [Error]),
             {{false, <<"Authorization">>}, Req, State}
     end.
     
