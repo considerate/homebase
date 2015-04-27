@@ -11,7 +11,7 @@ thread_data({ThreadData}) ->
         undefined ->
             BaseObj;
         Name ->
-            [Name|BaseObj]
+            [{<<"name">>, Name}|BaseObj]
     end,
     {RetObj}.
 
