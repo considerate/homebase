@@ -6,16 +6,15 @@ secret() ->
     ?SECRET.
 
 authenticate(Req) ->
-    Headers = cowboy_req:headers(Req),
-    case proplists:lookup(<<"authorization">>,Headers) of
-        {_, <<"Bearer ", Token/binary>>} ->
+    case cowboy_req:header(<<"authorization">>, Req) of
+        <<"Bearer ", Token/binary>> ->
             case catch ejwt:parse_jwt(Token, ?SECRET) of
                 {Data} -> {ok, Data};
                 Error -> {error, Error}
             end;
-        {_, _} ->
+        <<_>> ->
             {error, not_bearer_authorization};
-        none ->
+        undefined ->
             {error, no_authorization_header}
 
     end.
