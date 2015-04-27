@@ -1,5 +1,5 @@
 -module(auth_ball).
--export([authenticate/1, rest_auth/2, secret/0, user_in_thread/1,user_in_thread/2,user_forbidden_from_thread/2]).
+-export([authenticate/1, rest_auth/2, secret/0, forbidden_from_creator/2, forbidden_from_thread/2,forbidden_from_user/2]).
 -define (SECRET, <<"This is a very secret secret, do not tell anyone.">>).
 
 secret() ->
@@ -28,26 +28,48 @@ rest_auth(Req, State) ->
             io:format("authentication failed: ~p~n", [Error]),
             {{false, <<"Authorization">>}, Req, State}
     end.
+    
+%Forbidden if the requested thread exists and the requesting user is not a member of it.
+forbidden_from_thread(Req,State) ->
+    NewState = append_doc_to_state(threadid,Req,State),
+    Forbidden = case proplists:get_value(document,NewState) of
+        {Thread} -> 
+            RequestingUser = proplists:get_value(user,State),
+            Users = proplists:get_value(<<"users">>,Thread),
+            not lists:member(RequestingUser,Users);
+        none ->
+            false
+    end,
+    {Forbidden,Req,NewState}.
 
-user_forbidden_from_thread(Req,State) ->
-    ThreadID = cowboy_req:binding(threadid,Req),
-    JSONData = case db_utils:fetch(ThreadID) of
-        {ok,JSON} ->
-            JSON;
+%Forbidden if requested thread exists and the requesting user is not the creator of it.
+forbidden_from_creator(Req,State) ->
+    NewState = append_doc_to_state(threadid,Req,State),
+    Forbidden = case proplists:get_value(document,NewState) of
+        {Thread} ->
+            RequestingUser = proplists:get_value(user,State),
+            Creator = proplists:get_value(<<"creator">>,Thread),
+            Creator =/= RequestingUser;
+        none -> 
+            false
+    end,
+    {Forbidden,Req,State}.
+    
+%Forbidden if user specified in url
+forbidden_from_user(Req,State) ->
+        URLUserID = web_utils:get_user_id(Req,State),
+        ActualUserID = proplists:get_value(user,State),
+        ActualUserID =/= URLUserID.
+
+%Appends a document from couch with the id specifyed by the given url binding.
+append_doc_to_state(Binding,Req,State) ->
+    DocID = cowboy_req:binding(Binding,Req),
+    Doc = case db_utils:fetch(DocID) of
+        {ok,Obj} ->
+            Obj;
         {error,_Err} ->
             none
     end,
-    NewState = [{document,JSONData}|State],
-    IsAllowed = JSONData =:= none orelse auth_ball:user_in_thread(NewState),
-    {not IsAllowed,Req,NewState}.
-
-user_in_thread(Uid,{Thread}) when is_list(Thread) andalso is_bitstring(Uid)->
-	UsersInThread = proplists:get_value(<<"users">>, Thread),
-	lists:member(Uid, UsersInThread).
-
-%When using this overload, make sure that rest_auth has already been called
-user_in_thread(State) ->
-	{Thread} = proplists:get_value(document,State),
-    Uid = proplists:get_value(user,State),
-    user_in_thread(Uid,{Thread}).
+    [{document,Doc}|State].
+	
 
