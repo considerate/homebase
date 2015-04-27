@@ -56,12 +56,13 @@ forbidden_from_creator(Req,State) ->
             false
     end,
     {Forbidden,Req,NewState}.
-    
+
 %Forbidden if user specified in url
 forbidden_from_user(Req,State) ->
     URLUserID = web_utils:get_user_id(Req,State),
     ActualUserID = proplists:get_value(user,State),
-    ActualUserID =/= URLUserID.
+    Forbidden = ActualUserID =/= URLUserID,
+    {Forbidden,Req,State}.
 
 %Appends a document from couch with the id specifyed by the given url binding.
 append_doc_to_state(Binding,Req,State) ->
