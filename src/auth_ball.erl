@@ -6,27 +6,28 @@ secret() ->
     ?SECRET.
 
 authenticate(Req) ->
-    Headers = cowboy_req:headers(Req),
-    case proplists:lookup(<<"authorization">>,Headers) of
-        {_, <<"Bearer ", Token/binary>>} ->
+    case cowboy_req:header(<<"authorization">>, Req) of
+        <<"Bearer ", Token/binary>> ->
             case catch ejwt:parse_jwt(Token, ?SECRET) of
                 {Data} -> {ok, Data};
                 Error -> {error, Error}
             end;
-        {_, _} ->
+        <<_>> ->
             {error, not_bearer_authorization};
-        none ->
+        undefined ->
             {error, no_authorization_header}
 
     end.
 
 rest_auth(Req, State) ->
-    case authenticate(Req) of
-        {ok, Data} ->
+    case {cowboy_req:method(Req), authenticate(Req)} of
+        {options, _} ->
+            {true, Req, State};
+        {_, {ok, Data}} ->
             Uid = proplists:get_value(<<"id">>,Data),
             {true, Req, [{user,Uid}|State]};
-        {error, Error} ->
-            io:format("authentication failed: ~p~n", [Error]),
+        {_, {error, Error}} ->
+            lager:debug("authentication failed: ~p", [Error]),
             {{false, <<"Authorization">>}, Req, State}
     end.
     
@@ -54,13 +55,14 @@ forbidden_from_creator(Req,State) ->
         none -> 
             false
     end,
-    {Forbidden,Req,State}.
-    
+    {Forbidden,Req,NewState}.
+
 %Forbidden if user specified in url
 forbidden_from_user(Req,State) ->
-        URLUserID = web_utils:get_user_id(Req,State),
-        ActualUserID = proplists:get_value(user,State),
-        ActualUserID =/= URLUserID.
+    URLUserID = web_utils:get_user_id(Req,State),
+    ActualUserID = proplists:get_value(user,State),
+    Forbidden = ActualUserID =/= URLUserID,
+    {Forbidden,Req,State}.
 
 %Appends a document from couch with the id specifyed by the given url binding.
 append_doc_to_state(Binding,Req,State) ->

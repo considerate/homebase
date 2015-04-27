@@ -5,8 +5,8 @@
 -define(ONE_WEEK, 604800).
 
 start(_Type, _Args) ->
-    application:ensure_all_started(lager),
-    io:format("Homebase: ~p~n",[self()]),
+    lager:start(),
+    lager:info("Homebase: ~p",[self()]),
     objectid_gen_server:start_link(),
     Payload = {[{admin,true}]},
     AdminToken = ejwt:jwt(<<"HS256">>, Payload, ?ONE_WEEK, auth_ball:secret()),
@@ -31,7 +31,7 @@ start(_Type, _Args) ->
     ]),
     {ok, BindAddress} = inet:parse_ipv4_address("0.0.0.0"),
     {ok, Port} = application:get_env(homebase, http_port),
-    io:format("Address to listen on: ~p:~p~n", [BindAddress,Port]),
+    lager:info("Address to listen on: ~p:~p", [BindAddress,Port]),
     Cowboy = cowboy:start_http(homebase_http, 100,
         [{port, Port},
          {ip, BindAddress}],
@@ -40,7 +40,7 @@ start(_Type, _Args) ->
                         homebase_cors,
                         cowboy_handler]}]
     ),
-    io:format("Cowboy statrted as ~p~n", [Cowboy]),
+    lager:info("Cowboy started as ~p", [Cowboy]),
     homebase_sup:start_link().
 
 stop(_State) ->

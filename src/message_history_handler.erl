@@ -5,6 +5,7 @@
     allowed_methods/2,
     content_types_provided/2,
     get_json/2,
+    forbidden/2,
     is_authorized/2
     ]).
 
