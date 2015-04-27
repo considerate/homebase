@@ -8,7 +8,12 @@ start(_Type, _Args) ->
     application:ensure_all_started(lager),
     io:format("Homebase: ~p~n",[self()]),
     objectid_gen_server:start_link(),
-    {ok, Client} =  mqtt_client_simple:connect([{client_id,<<"admin">>}]),
+    Payload = {[{admin,true}]},
+    AdminToken = ejwt:jwt(<<"HS256">>, Payload, ?ONE_WEEK, auth_ball:secret()),
+    MqttParams = [{username, <<"admin">>},
+                  {password, AdminToken},
+                  {client_id, objectid_gen_server:objectid()}],
+    {ok, Client} =  mqtt_client_simple:connect(MqttParams),
     MqttOptions = [{client,Client}],
     MqttDispatch = proplists:get_value(dispatch, fubar:settings(fubar_app)),
     Dispatch = cowboy_router:compile([
@@ -25,7 +30,7 @@ start(_Type, _Args) ->
         ]}
     ]),
     {ok, BindAddress} = inet:parse_ipv4_address("0.0.0.0"),
-    Port = 8088,
+    {ok, Port} = application:get_env(homebase, http_port),
     io:format("Address to listen on: ~p:~p~n", [BindAddress,Port]),
     Cowboy = cowboy:start_http(homebase_http, 100,
         [{port, Port},
