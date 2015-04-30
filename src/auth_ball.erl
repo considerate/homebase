@@ -33,35 +33,45 @@ rest_auth(Req, State) ->
     
 %Forbidden if the requested thread exists and the requesting user is not a member of it.
 forbidden_from_thread(Req,State) ->
+    Method = cowboy_req:method(Req),
     NewState = append_doc_to_state(threadid,Req,State),
-    Forbidden = case proplists:get_value(document,NewState) of
-        {Thread} -> 
+    Document = proplists:get_value(document,NewState),
+    Forbidden = case {Method, Document} of
+        {<<"OPTIONS">>, _} ->
+            false;
+        {_, {Thread}} -> 
             RequestingUser = proplists:get_value(user,State),
             Users = proplists:get_value(<<"users">>,Thread),
             not lists:member(RequestingUser,Users);
-        none ->
+        {_, none} ->
             false
     end,
     {Forbidden,Req,NewState}.
 
 %Forbidden if requested thread exists and the requesting user is not the creator of it.
 forbidden_from_creator(Req,State) ->
+    Method = cowboy_req:method(Req),
     NewState = append_doc_to_state(threadid,Req,State),
-    Forbidden = case proplists:get_value(document,NewState) of
-        {Thread} ->
+    Document = proplists:get_value(document,NewState),
+    Forbidden = case {Method, Document} of
+        {<<"OPTIONS">>, _} ->
+            false;
+        {_, {Thread}} -> 
             RequestingUser = proplists:get_value(user,State),
             Creator = proplists:get_value(<<"creator">>,Thread),
             Creator =/= RequestingUser;
-        none -> 
+        {_, none} ->
             false
     end,
     {Forbidden,Req,NewState}.
 
 %Forbidden if user specified in url
 forbidden_from_user(Req,State) ->
+    Method = cowboy_req:method(Req),
     URLUserID = web_utils:get_user_id(Req,State),
     ActualUserID = proplists:get_value(user,State),
-    Forbidden = ActualUserID =/= URLUserID,
+    Forbidden = Method =/= <<"OPTIONS">>
+        andalso ActualUserID =/= URLUserID,
     {Forbidden,Req,State}.
 
 %Appends a document from couch with the id specifyed by the given url binding.
