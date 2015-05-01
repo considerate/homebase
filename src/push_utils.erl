@@ -1,5 +1,5 @@
 -module(push_utils).
--export([connect_to_apple_push_notification_service/0])
+-export([connect_to_apple_push_notification_service/0]).
 
 connect_to_apple_push_notification_service()->
     Address = "gateway.sandbox.push.apple.com",
