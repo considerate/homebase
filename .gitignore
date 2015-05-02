@@ -2,6 +2,8 @@ rel/baseball
 rel/homebase
 rel/master
 rel/slave
+rel/files/apns-cert.pem
+rel/files/apns-key.pem
 deps
 ebin
 .DS_Store
