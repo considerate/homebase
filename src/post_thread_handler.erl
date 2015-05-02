@@ -55,7 +55,7 @@ post_json(Req, State) ->
                                 Sep/binary,
                                 SecondUser/binary>>,
                     Private = true,
-                    case db_utils:add_thread(ThreadId,AllUsers,ThreadName,Uid,Private) of
+                    case '3rd-base_db_utils':add_thread(ThreadId,AllUsers,ThreadName,Uid,Private) of
                         {error, _Error} ->
                             NewState = [{exists,true}|State],
                             Success(NewState,ThreadId);
@@ -67,7 +67,7 @@ post_json(Req, State) ->
                     ThreadIdOid = objectid_gen_server:objectid(),
                     ThreadId = objectid:bin_to_hex(ThreadIdOid),
                     Private = false,
-                    {ok, _} = db_utils:add_thread(ThreadId, AllUsers,ThreadName, Uid, Private),
+                    {ok, _} = '3rd-base_db_utils':add_thread(ThreadId, AllUsers,ThreadName, Uid, Private),
                     message_utils:send_new_thread(State,ThreadId,AllUsers,ThreadName,Uid,Private),
                     Success(State,ThreadId)
             end

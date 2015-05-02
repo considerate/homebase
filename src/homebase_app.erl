@@ -7,9 +7,6 @@
 start(_Type, _Args) ->
     lager:start(),
     lager:info("Homebase: ~p",[self()]),
-    application:start(crypto),
-    application:start(asn1),
-    application:start(ssl),
     objectid_gen_server:start_link(),
     Payload = {[{admin,true}]},
     AdminToken = ejwt:jwt(<<"HS256">>, Payload, ?ONE_WEEK, auth_ball:secret()),

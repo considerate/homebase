@@ -23,7 +23,7 @@ delete_resource(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     Uid = proplists:get_value(user, Opts),
     % MqttClient = proplists:get_value(mqtt_client, Opts),
-    {ok,JSONData} = db_utils:fetch(Thread),
+    {ok,JSONData} = '3rd-base_db_utils':fetch(Thread),
     {ThreadData} = object_utils:thread_data(JSONData),
     UsersInThread = proplists:get_value(users, ThreadData),
     true = lists:member(Uid, UsersInThread),
@@ -36,7 +36,7 @@ delete_resource(Req,Opts) ->
                 {users, NewUsers}
                 ]},
     Payload = jiffy:encode(Output),
-    db_utils:put_to_db(Thread, {NewThreadData}),
+    '3rd-base_db_utils':put_to_db(Thread, {NewThreadData}),
     Topic = << <<"threads/">>/binary, Thread/binary, <<"/members">>/binary>>,
     Client = proplists:get_value(client,Opts),
     message_utils:send_message(Client, Payload,Topic),

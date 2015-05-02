@@ -22,7 +22,7 @@ is_authorized(Req, State) ->
 post_json(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     Uid = proplists:get_value(user, Opts),
-    {ok,{ThreadData}} = db_utils:fetch(Thread),
+    {ok,{ThreadData}} = '3rd-base_db_utils':fetch(Thread),
     UsersInThread = proplists:get_value(<<"users">>, ThreadData),
     IsInThread = lists:member(Uid, UsersInThread),
     IsPrivate = proplists:get_bool(<<"private">>,ThreadData),
@@ -42,7 +42,7 @@ post_json(Req,Opts) ->
                                 {id, Thread}
                                 ]},
                     Payload = jiffy:encode(Output),
-                    db_utils:put_to_db(Thread, {NewThreadData}),
+                    '3rd-base_db_utils':put_to_db(Thread, {NewThreadData}),
                     MqttClient = proplists:get_value(client, Opts),
                     Topic = << <<"threads/">>/binary, Thread/binary, <<"/members">>/binary >>,
                     message_utils:send_message(MqttClient,Payload, Topic),

@@ -77,7 +77,7 @@ forbidden_from_user(Req,State) ->
 %Appends a document from couch with the id specifyed by the given url binding.
 append_doc_to_state(Binding,Req,State) ->
     DocID = cowboy_req:binding(Binding,Req),
-    Doc = case db_utils:fetch(DocID) of
+    Doc = case '3rd-base_db_utils':fetch(DocID) of
         {ok,Obj} ->
             Obj;
         {error,_Err} ->
