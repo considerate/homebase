@@ -35,8 +35,7 @@ delete_resource(Req,Opts) ->
                 {users, NewUsers}
                 ]},
     Payload = jiffy:encode(Output),
-    io:format("~n~nPRINTOUT:::::: ~p~n~n~p", [NewThreadData, Thread]),
-    db_utils:put_to_db(Thread, {NewThreadData}),
+    '3rd-base_db_utils':put_to_db(Thread, {NewThreadData}),
     Topic = << <<"threads/">>/binary, Thread/binary, <<"/members">>/binary>>,
     Client = proplists:get_value(client,Opts),
     message_utils:send_message(Client, Payload,Topic),

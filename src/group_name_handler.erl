@@ -59,7 +59,7 @@ put_json(Req, State) ->
     case {JSONData,object_utils:valid_thread_name(NewThreadName)} of 
         {{Thread},true} ->
             NewThread = [{<<"name">>,NewThreadName}|proplists:delete(<<"name">>,Thread)],
-            db_utils:put_to_db({NewThread}),
+            '3rd-base_db_utils':put_to_db({NewThread}),
             ThreadId = cowboy_req:binding(threadid, NewReq),
             message_utils:send_new_thread_name(State,ThreadId,NewThreadName),
             {true,NewReq,State};
@@ -76,7 +76,7 @@ get_json(Req,State) ->
 delete_resource(Req,State) ->
     {OLDThread} = proplists:get_value(document,State),
     NewThread = proplists:delete(<<"name">>,OLDThread),
-    db_utils:put_to_db({NewThread}),
+    '3rd-base_db_utils':put_to_db({NewThread}),
     ThreadId = cowboy_req:binding(threadid,Req),
     message_utils:send_new_thread_name(State,ThreadId,null),
     {true,Req,State}.

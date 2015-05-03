@@ -82,7 +82,7 @@ get_json(Req, Opts) ->
     After = proplists:get_value(<<"after">>,QueryString),
     Before = proplists:get_value(<<"before">>,QueryString),
     {QueryParams,QueryOpts} = get_query_params(Thread,Before,After),
-    JSONData = db_utils:query("/_design/messages/_view/message_history",QueryParams,{opts,QueryOpts}),
+    JSONData = '3rd-base_db_utils':query("/_design/messages/_view/message_history",QueryParams,{opts,QueryOpts}),
     Rows = json_utils:get_field(<<"rows">>,JSONData),
     BaseLink = iolist_to_binary([<<"/threads/">>, Thread, <<"/messages">>]),
     Links = get_pagination_links(BaseLink,Rows,Before,After),
