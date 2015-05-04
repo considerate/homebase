@@ -23,7 +23,7 @@ delete_resource(Req,Opts) ->
     Thread = cowboy_req:binding(threadid, Req),
     Uid = proplists:get_value(user, Opts),
     % MqttClient = proplists:get_value(mqtt_client, Opts),
-    {ok, {ThreadData}} = db_utils:fetch(Thread),
+    {ok, {ThreadData}} = '3rd-base_db_utils':fetch(Thread),
     UsersInThread = proplists:get_value(<<"users">>, ThreadData),
     true = lists:member(Uid, UsersInThread),
     UsersInThreadSet = sets:from_list(UsersInThread),
