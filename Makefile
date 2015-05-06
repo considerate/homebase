@@ -80,7 +80,7 @@ rel: compile
 	make master
 
 $(push_key_files):
-	@echo 'missing push certificate file(s):' $@
+	@echo 'missing push certificate file(s), see readme for details:' $@
 	@false
 
 master slave: $(push_key_files)
