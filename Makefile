@@ -11,6 +11,7 @@ mqtt_port=1883
 mqtts_port=undefined
 http_port=undefined
 cookie=sharedsecretamongnodesofafubarcluster_youneedtochangethisforsecurity
+push_key_files := rel/files/apns-cert.pem rel/files/apns-key.pem rel/files/gcm-secret.key
 
 ## Static values
 APP=fubar
@@ -78,6 +79,10 @@ delete-deps:
 rel: compile
 	make master
 
-master slave:
+$(push_key_files):
+	@echo 'missing push certificate file(s):' $@
+	@false
+
+master slave: $(push_key_files)
 	mkdir -p dev
 	(cd rel && rebar generate target_dir=$@ overlay_vars=vars/$@_vars.config)
