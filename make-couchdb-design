@@ -11,12 +11,13 @@ DESIGN=messages
 
 curl -X PUT --data-binary @- http://$HOST/$DB/_design/$DESIGN <<JS
 {
-  "_id": "_design/$DESIGN", 
-  "views": {
-    "message_history": {
-      "map": "function(doc) {\n  if(doc.type === 'message'){\n    emit([doc.thread,doc._id],{body: doc.body, from: doc.from, id: doc._id});\n  }\n}\n"
-    }
-  }
+   "_id": "_design/messages",
+   "language": "javascript",
+   "views": {
+       "message_history": {
+           "map": "function(doc) {\n\tif(doc.type === 'message'){\n\t\tvar mess = {from: doc.from, id: doc._id};\n\t\tif(doc.body){\n\t\t\tmess.body = doc.body;\n\t\t}\n\t\tif(doc.image){\n\t\t\tmess.image = doc.image;\n\t\t}\n\t\temit([doc.thread,doc._id],mess);\n\t}\n}"
+       }
+   }
 }
 JS
 
