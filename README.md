@@ -4,6 +4,13 @@ The HTTP API complement to 3rd Base.
 
 ## Installation
 
+Put apns and gcm certificates at the following locations: 
+homebase/rel/files/apns-cert.pem
+homebase/rel/files/apns-key.pem
+homebase/rel/files/gcm-key.secret
+
+Compile
+
 ```bash
 make deps
 make rel
