@@ -9,6 +9,8 @@ homebase/rel/files/apns-cert.pem
 homebase/rel/files/apns-key.pem
 homebase/rel/files/gcm-key.secret
 
+The keys should be in plain text format in above files.
+
 Compile
 
 ```bash
