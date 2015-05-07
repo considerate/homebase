@@ -11,7 +11,7 @@ mqtt_port=1883
 mqtts_port=undefined
 http_port=undefined
 cookie=sharedsecretamongnodesofafubarcluster_youneedtochangethisforsecurity
-push_key_files := rel/files/apns-cert.pem rel/files/apns-key.pem rel/files/gcm-secret.key
+push_key_files = rel/files/apns-cert.pem rel/files/apns-key.pem rel/files/gcm-key.secret
 
 ## Static values
 APP=fubar
