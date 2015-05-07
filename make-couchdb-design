@@ -30,7 +30,7 @@ curl -X PUT --data-binary @- http://$HOST/$DB/_design/$DESIGN <<JS
    "language": "javascript",
    "views": {
        "threads": {
-           "map": "function(doc) {\n    if(doc.type === 'thread') {\n        var thread = \n        {\n            id: doc._id,\n            users: doc.users,\n            creator: doc.creator\n        };\n        if(doc.name){\n            thread.name = doc.name;\n        }\n        doc.users.forEach(function(user) {\n                emit(user,thread);\n        });\n        \n    }\n}"
+           "map": "function(doc) {\n    if(doc.type === 'thread') {\n        var thread = \n        {\n            id: doc._id,\n            users: doc.users,\n            creator: doc.creator,\n\t    private: doc.private,\n        };\n        if(doc.name){\n            thread.name = doc.name;\n        }\n        doc.users.forEach(function(user) {\n                emit(user,thread);\n        });\n        \n    }\n}"
        }
    }
 }

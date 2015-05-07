@@ -27,6 +27,7 @@ get_json(Req,State) ->
     Uid = proplists:get_value(user,State),
     {Props} = '3rd-base_db_utils':query("/_design/users/_view/threads", Uid),
     Threads = proplists:get_value(<<"rows">>, Props),
+    %We don't need to verify that Threads don't contain any unsafe fields, this is done in couch db.
     Response = {[{threads, Threads}]},
     {jiffy:encode(Response), Req, State}.
 
