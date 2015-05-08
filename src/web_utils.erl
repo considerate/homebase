@@ -48,18 +48,13 @@ get_user_id(Req,State) ->
 
 %Determines if a user is allowed to add a list of users to a thread
 is_blocked(Uid,UsersToAdd) ->
-    io:format("~n~nis_blocked: UsersToAdd = ~n~p~n~n",[UsersToAdd]),
     {ok,Settings} = application:get_env(homebase,user_api),
     BasePath = proplists:get_value(base_path,Settings),
     URL = BasePath ++ "/users/" ++ binary_to_list(Uid),
     {ok,{_,	_,UserBody}} = httpc:request(URL),
     {UserData} = jiffy:decode(UserBody),
-    UserBlockedBy = sets:from_list(proplists:get_value(<<"blockedBy">>,UserData)),
+    UserBlockedBy = sets:from_list(proplists:get_value(<<"blockedBy">>,UserData, [])),
     sets:intersection(UserBlockedBy,UsersToAdd) =/= sets:new().
-    
-    
-%    sets:is_element(Uid,UserBlockedBy).
-%    lists:any(fun(Blocked) -> sets:is_element(Blocked, UsersToAdd) end, UserBlockedBy).
 
 create_query_url(QueryBase,Params) ->
     create_query_url(QueryBase,Params,true).
