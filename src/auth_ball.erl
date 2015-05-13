@@ -1,14 +1,14 @@
 -module(auth_ball).
 -export([authenticate/1, rest_auth/2, secret/0, forbidden_from_creator/2, forbidden_from_thread/2,forbidden_from_user/2]).
--define (SECRET, <<"This is a very secret secret, do not tell anyone.">>).
 
 secret() ->
-    ?SECRET.
+    {ok, Secret} = application:get_env(homebase,jwt_secret),
+    Secret.
 
 authenticate(Req) ->
     case cowboy_req:header(<<"authorization">>, Req) of
         <<"Bearer ", Token/binary>> ->
-            case catch ejwt:parse_jwt(Token, ?SECRET) of
+            case catch ejwt:parse_jwt(Token, secret()) of
                 {Data} -> {ok, Data};
                 Error -> {error, Error}
             end;
@@ -30,7 +30,7 @@ rest_auth(Req, State) ->
             lager:debug("authentication failed: ~p", [Error]),
             {{false, <<"Authorization">>}, Req, State}
     end.
-    
+
 %Forbidden if the requested thread exists and the requesting user is not a member of it.
 forbidden_from_thread(Req,State) ->
     Method = cowboy_req:method(Req),
