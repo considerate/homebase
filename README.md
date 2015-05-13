@@ -24,7 +24,7 @@ service couchdb start
 
 ### Build Homebase
 
-Then `cd` into the cloned directory of this repository and fetch all erlang depency libraries.
+Then `cd` into the cloned directory of this repository and fetch all erlang depenency libraries.
 
 ```bash
 cd homebase
